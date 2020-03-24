@@ -4,7 +4,7 @@ import './styles.css'
 let canvas = document.getElementById('app')
 let ctx = canvas.getContext('2d')
 
-const SHIP_SIZE = 30 /* in pixels*/
+const SHIP_SIZE = 40 /* in pixels*/
 const FPS = 30
 const TURN_SPEED = 360
 const SHIP_THRUST = 8
@@ -71,6 +71,32 @@ let update = () => {
   if (ship.thrusting) {
     ship.thrust.x += (SHIP_THRUST * Math.cos(ship.direction)) / FPS
     ship.thrust.y -= (SHIP_THRUST * Math.sin(ship.direction)) / FPS
+
+    // Draw Thrust
+
+  ctx.filStyle = 'red'
+  ctx.strokeStyle = 'yellow'
+  ctx.lineWidth = SHIP_SIZE / 10
+  // ctx.globalAlpha = 0.2
+  ctx.beginPath()
+  ctx.moveTo(
+    // Bottom Left
+    ship.Xpos -
+      ship.radius * (Math.cos(ship.direction) + Math.sin(ship.direction)),
+    ship.Ypos +
+      ship.radius * (Math.sin(ship.direction) - Math.cos(ship.direction))
+  )
+ 
+
+  ctx.lineTo(
+    // Bottom Right
+    ship.Xpos -
+      ship.radius * (Math.cos(ship.direction) - Math.sin(ship.direction)),
+    ship.Ypos +
+      ship.radius * (Math.sin(ship.direction) + Math.cos(ship.direction))
+  )
+  ctx.closePath()
+  ctx.stroke()
   } else {
     ship.thrust.x -= (DRAG * ship.thrust.x) / FPS
     ship.thrust.y -= (DRAG * ship.thrust.y) / FPS

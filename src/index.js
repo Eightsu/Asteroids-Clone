@@ -7,13 +7,19 @@ let ctx = canvas.getContext('2d')
 const SHIP_SIZE = 30 /* in pixels*/
 const FPS = 30
 const TURN_SPEED = 360
+const SHIP_THRUST = 0.2
 
 let ship = {
   Xpos: canvas.width / 2,
   Ypos: canvas.height / 2,
   radius: SHIP_SIZE / 2,
   direction: (90 / 180) * Math.PI /* deg to rad */,
-  rotation: 0
+  rotation: 0,
+  thrusting: false,
+  thrust: {
+    x: 0,
+    y: 0
+  }
 }
 
 document.addEventListener('keydown', keyDown)
@@ -26,10 +32,14 @@ function keyDown(e) {
       break
     case 38: // up arrow (thrust the ship forward)
       ship.thrusting = true
+      console.log('thrust')
       break
     case 39: // right arrow (rotate ship right)
       ship.rotation = ((-TURN_SPEED / 180) * Math.PI) / FPS
       break
+
+    default:
+      return null
   }
 }
 
@@ -40,10 +50,13 @@ function keyUp(e) {
       break
     case 38: // up arrow (stop thrusting)
       ship.thrusting = false
+      console.log('stop')
       break
     case 39: // right arrow (stop rotating right)
       ship.rotation = 0
       break
+    default:
+      return null
   }
 }
 
@@ -52,6 +65,12 @@ let update = () => {
 
   ctx.filStyle = 'black'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+  // Thrust
+  if (ship.thrusting) {
+    ship.thrust.x += SHIP_THRUST * Math.cos(ship.direction)
+    ship.thrust.y += SHIP_THRUST * Math.sin(ship.direction)
+  }
 
   // Draw Triangular Ship
   ctx.strokeStyle = 'white'
@@ -80,6 +99,8 @@ let update = () => {
   ctx.closePath()
   ctx.stroke()
   // Move Ship
+  ship.Xpos += ship.thrust.x
+  ship.Ypos -= ship.thrust.y
 
   // Rotate Ship
   ship.direction += ship.rotation
@@ -87,7 +108,8 @@ let update = () => {
   // center dot
 }
 
-const gameloop = () => {}
-setInterval(update, 1000 / FPS)
+const gameloop = () => {
+  setInterval(update, 1000 / FPS)
+}
 
-// gameloop();
+gameloop()

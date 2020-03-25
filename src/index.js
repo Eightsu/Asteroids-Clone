@@ -10,7 +10,7 @@ const FPS = 30
 const TURN_SPEED = 360
 const SHIP_THRUST = 15
 const SHIP_DRAG = 1
-const SHIP_EXPLODE_DURATION = 0.4
+const SHIP_EXPLODE_DURATION = 0.2
 
 // ASTEROID CONSTANTS
 const AST_NUM = 3
@@ -292,6 +292,7 @@ let update = () => {
     ship.explodeTime--
 
     if (ship.explodeTime === 0) {
+      ship = newShip()
     }
   }
 

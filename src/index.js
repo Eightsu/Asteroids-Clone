@@ -8,14 +8,15 @@ let ctx = canvas.getContext('2d')
 const SHIP_SIZE = 40 /* in pixels*/
 const FPS = 30
 const TURN_SPEED = 360
-const SHIP_THRUST = 15
-const SHIP_DRAG = 1
-const SHIP_EXPLODE_DURATION = 0.2
-const SHIP_I_DURATION = 2
-const SHIP_BLINK_DURATION = 0.4
+const SHIP_THRUST = 5
+const SHIP_DRAG = 0.7
+const SHIP_EXPLODE_DURATION = 0.4
+const SHIP_I_DURATION = 1
+const SHIP_BLINK_DURATION = 0.1
+const MAX_SHIP_BULLETS = 10
 
 // ASTEROID CONSTANTS
-const AST_NUM = 50
+const AST_NUM = 5
 const AST_SPEED = 100
 const AST_SIZE = 100
 const AST_VERTICIES = 10
@@ -57,12 +58,12 @@ const newShip = () => {
     blinkNum: Math.ceil(SHIP_I_DURATION / SHIP_BLINK_DURATION),
     blinkTime: Math.ceil(SHIP_BLINK_DURATION * FPS),
     rotation: 0,
+    explodeTime: 0,
     thrusting: false,
     thrust: {
       x: 0,
       y: 0
-    },
-    explodeTime: 0
+    }
   }
 }
 let ship = newShip()
@@ -93,6 +94,7 @@ const newAsteroid = (x, y) => {
 
 const destroyShip = () => {
   ship.explodeTime = Math.ceil(SHIP_EXPLODE_DURATION * FPS)
+  // ship = newShip()
 }
 
 generateAsteroidBelt()
@@ -136,8 +138,8 @@ function keyUp(e) {
 }
 
 let update = () => {
-  let isExploding = ship.explodeTime > 0
   let onBlink = ship.blinkNum % 2 === 0
+  let isExploding = ship.explodeTime > 0
   // Draw BG
 
   ctx.fillStyle = 'black'
@@ -302,14 +304,15 @@ let update = () => {
       ship.Ypos += ship.thrust.y
 
       ship.direction += ship.rotation
-    } else {
-      ship.explodeTime--
+    }
+  } else {
+    ship.explodeTime--
 
-      if (ship.explodeTime === 0) {
-        ship = newShip()
-      }
+    if (ship.explodeTime === 0) {
+      ship = newShip()
     }
   }
+  // }
 
   // Rotate Ship
 
@@ -344,7 +347,7 @@ let update = () => {
       asteroids[i].x = 0 - asteroids[i].radius
     }
   }
-  // console.log(ship.blinkNum)
+  // console.log(isExploding)
   // END OF UPDATE FUNC
 }
 const gameloop = () => {

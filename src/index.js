@@ -12,11 +12,14 @@ const SHIP_THRUST = 15
 const SHIP_DRAG = 1
 
 // ASTEROID CONSTANTS
-const AST_NUM = 3
-const AST_SPEED = 25
+const AST_NUM = 6
+const AST_SPEED = 100
 const AST_SIZE = 100
 const AST_VERTICIES = 10
 const AST_DECIMATION = 0.3
+
+// TEST CONSTANTS
+const BOUNDING_BOX = false
 
 // Ship
 let ship = {
@@ -36,7 +39,7 @@ let asteroids = []
 
 // Asteroids
 
-const checkCollision = (x1, y1, x2, y2) => {
+const checkSpawnCollision = (x1, y1, x2, y2) => {
   return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
 }
 
@@ -48,7 +51,7 @@ const generateAsteroidBelt = () => {
     do {
       x = Math.floor(Math.random() * canvas.width)
       y = Math.floor(Math.random() * canvas.height)
-    } while (checkCollision(ship.Xpos, ship.Ypos, x, y) < AST_SIZE * 2)
+    } while (checkSpawnCollision(ship.Xpos, ship.Ypos, x, y) < AST_SIZE * 2)
     asteroids.push(newAsteroid(x, y))
     // (;
   }
@@ -160,7 +163,7 @@ let update = () => {
 
   // Draw Triangular Ship
   // ctx.fillStyle= 'green'
-  ctx.strokeStyle = 'green'
+  ctx.strokeStyle = 'white'
   ctx.lineWidth = SHIP_SIZE / 20
   ctx.beginPath()
   ctx.moveTo(
@@ -186,9 +189,11 @@ let update = () => {
   ctx.closePath()
   ctx.stroke()
 
+  // if(BOUNDING_BOX) { }
+
   // draw Asteroids
-  ctx.strokeStyle = 'magenta'
-  ctx.lineWidth = SHIP_SIZE / 42
+  ctx.strokeStyle = 'linen'
+  ctx.lineWidth = SHIP_SIZE / 30
   let x, y, radius, direction, verticies, offset
   for (let i = 0; i < asteroids.length; i++) {
     x = asteroids[i].x
@@ -224,6 +229,19 @@ let update = () => {
 
     asteroids[i].x += asteroids[i].xvelocity
     asteroids[i].y += asteroids[i].yvelocity
+
+    if (asteroids[i].y < 0 - asteroids[i].radius) {
+      asteroids[i].y = canvas.height + asteroids[i].radius
+    } else if (asteroids[i].y > canvas.height + asteroids[i].radius) {
+      asteroids[i].y = 0 - asteroids[i].radius
+    }
+
+    if (asteroids[i].x < 0 - asteroids[i].radius) {
+      asteroids[i].x = canvas.width + asteroids[i].radius
+    } else if (asteroids[i].x > canvas.width + asteroids[i].radius) {
+      // console.log("BOUNDARY")
+      asteroids[i].x = 0 - asteroids[i].radius
+    }
   }
 
   // Move Ship
@@ -246,6 +264,8 @@ let update = () => {
   } else if (ship.Ypos > canvas.height) {
     ship.Ypos = 0 + ship.radius
   }
+
+  //  SCREEN WRAP FOR ASTEROIDS
 
   // END OF UPDATE FUNC
 }

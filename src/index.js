@@ -14,6 +14,7 @@ const SHIP_EXPLODE_DURATION = 0.4
 const SHIP_I_DURATION = 1
 const SHIP_BLINK_DURATION = 0.1
 const MAX_SHIP_BULLETS = 10
+const SHIP_BULLET_SPEED = 200
 
 // ASTEROID CONSTANTS
 const AST_NUM = 5
@@ -60,21 +61,37 @@ const newShip = () => {
     rotation: 0,
     explodeTime: 0,
     thrusting: false,
+    enableShooting: true,
+    bullets: [],
     thrust: {
       x: 0,
       y: 0
     }
   }
 }
+
+const shootBullet = () => {
+  if (ship.enableShooting && ship.bullets.length < MAX_SHIP_BULLETS) {
+    ship.bullets.push({
+      x: ship.Xpos + ship.radius * Math.cos(ship.direction),
+      y: ship.Ypos - ship.radius * Math.sin(ship.direction),
+      xBulletVelocity: (SHIP_BULLET_SPEED * Math.cos(ship.rotation)) / FPS,
+      yBulletVelocity: (SHIP_BULLET_SPEED * Math.sin(ship.rotation)) / FPS
+    })
+  }
+
+  ship.enableShooting = false
+}
+
 let ship = newShip()
 
 const newAsteroid = (x, y) => {
   let asteroid = {
     x: x,
-    xvelocity:
+    asteroidXVelocity:
       ((Math.random() * AST_SPEED) / FPS) * (Math.random() < 0.6 ? 1 : -1),
     y: y,
-    yvelocity:
+    asteroidYVelocity:
       ((Math.random() * AST_SPEED) / FPS) * (Math.random() < 0.6 ? 1 : -1),
     radius: AST_SIZE / 2,
     direction: Math.random() * Math.PI * 2,
@@ -114,6 +131,10 @@ function keyDown(e) {
     case 39: // right arrow (rotate ship right)
       ship.rotation = ((-TURN_SPEED / 180) * Math.PI) / FPS
       break
+    case 32: // spacebar
+      // shootBullet();
+
+      break
 
     default:
       return null
@@ -131,6 +152,9 @@ function keyUp(e) {
       break
     case 39: // right arrow (stop rotating right)
       ship.rotation = 0
+      break
+    case 32: // allow new press
+      ship.enableShooting = true
       break
     default:
       return null
@@ -331,8 +355,8 @@ let update = () => {
   }
 
   for (let i = 0; i < asteroids.length; i++) {
-    asteroids[i].x += asteroids[i].xvelocity
-    asteroids[i].y += asteroids[i].yvelocity
+    asteroids[i].x += asteroids[i].asteroidXVelocity
+    asteroids[i].y += asteroids[i].asteroidYVelocity
 
     if (asteroids[i].y < 0 - asteroids[i].radius) {
       asteroids[i].y = canvas.height + asteroids[i].radius
@@ -354,4 +378,4 @@ const gameloop = () => {
   setInterval(update, 1000 / FPS)
 }
 
-gameloop()
+// gameloop()

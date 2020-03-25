@@ -10,9 +10,10 @@ const FPS = 30
 const TURN_SPEED = 360
 const SHIP_THRUST = 15
 const SHIP_DRAG = 1
+const SHIP_EXPLODE_DURATION = 0.4
 
 // ASTEROID CONSTANTS
-const AST_NUM = 6
+const AST_NUM = 3
 const AST_SPEED = 100
 const AST_SIZE = 100
 const AST_VERTICIES = 10
@@ -22,24 +23,12 @@ const AST_DECIMATION = 0.3
 const BOUNDING_BOX = false
 
 // Ship
-let ship = {
-  Xpos: canvas.width / 2,
-  Ypos: canvas.height / 2,
-  radius: SHIP_SIZE / 2,
-  direction: (90 / 180) * Math.PI /* deg to rad */,
-  rotation: 0,
-  thrusting: false,
-  thrust: {
-    x: 0,
-    y: 0
-  }
-}
 
 let asteroids = []
 
 // Asteroids
 
-const checkSpawnCollision = (x1, y1, x2, y2) => {
+const checkCollision = (x1, y1, x2, y2) => {
   return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
 }
 
@@ -51,11 +40,28 @@ const generateAsteroidBelt = () => {
     do {
       x = Math.floor(Math.random() * canvas.width)
       y = Math.floor(Math.random() * canvas.height)
-    } while (checkSpawnCollision(ship.Xpos, ship.Ypos, x, y) < AST_SIZE * 2)
+    } while (checkCollision(ship.Xpos, ship.Ypos, x, y) < AST_SIZE * 2)
     asteroids.push(newAsteroid(x, y))
     // (;
   }
 }
+
+const newShip = () => {
+  return {
+    Xpos: canvas.width / 2,
+    Ypos: canvas.height / 2,
+    radius: SHIP_SIZE / 2,
+    direction: (90 / 180) * Math.PI /* deg to rad */,
+    rotation: 0,
+    thrusting: false,
+    thrust: {
+      x: 0,
+      y: 0
+    },
+    explodeTime: 0
+  }
+}
+let ship = newShip()
 
 const newAsteroid = (x, y) => {
   let asteroid = {
@@ -79,6 +85,10 @@ const newAsteroid = (x, y) => {
     )
   }
   return asteroid
+}
+
+const destroyShip = () => {
+  ship.explodeTime = Math.ceil(SHIP_EXPLODE_DURATION * FPS)
 }
 
 generateAsteroidBelt()
@@ -122,9 +132,10 @@ function keyUp(e) {
 }
 
 let update = () => {
+  let isExploding = ship.explodeTime > 0
   // Draw BG
 
-  ctx.filStyle = 'black'
+  ctx.fillStyle = 'black'
   ctx.fillRect(0, 0, canvas.width, canvas.height)
 
   // Thrust
@@ -133,13 +144,48 @@ let update = () => {
     ship.thrust.y -= (SHIP_THRUST * Math.sin(ship.direction)) / FPS
 
     // Draw Thrust
+    if (!isExploding) {
+      ctx.fillStyle = 'black'
+      ctx.strokeStyle = 'blue'
+      ctx.lineWidth = SHIP_SIZE / 10
+      // ctx.globalAlpha = 0.2
+      ctx.beginPath()
+      ctx.moveTo(
+        // Bottom Left
+        ship.Xpos -
+          ship.radius * (Math.cos(ship.direction) + Math.sin(ship.direction)),
+        ship.Ypos +
+          ship.radius * (Math.sin(ship.direction) - Math.cos(ship.direction))
+      )
+      ctx.lineTo(
+        // Bottom Right
+        ship.Xpos -
+          ship.radius * (Math.cos(ship.direction) - Math.sin(ship.direction)),
+        ship.Ypos +
+          ship.radius * (Math.sin(ship.direction) + Math.cos(ship.direction))
+      )
+      ctx.closePath()
+      ctx.fill()
+      ctx.stroke()
+    }
+  } else {
+    ship.thrust.x -= (SHIP_DRAG * ship.thrust.x) / FPS
+    ship.thrust.y -= (SHIP_DRAG * ship.thrust.y) / FPS
+  }
 
-    ctx.filStyle = 'black'
-    ctx.strokeStyle = 'blue'
-    ctx.lineWidth = SHIP_SIZE / 10
-    // ctx.globalAlpha = 0.2
+  // Draw Triangular Ship
+  // ctx.fillStyle= 'green'
+
+  if (!isExploding) {
+    ctx.strokeStyle = 'white'
+    ctx.lineWidth = SHIP_SIZE / 20
     ctx.beginPath()
     ctx.moveTo(
+      // Nose of the Ship
+      ship.Xpos + ship.radius * Math.cos(ship.direction),
+      ship.Ypos - ship.radius * Math.sin(ship.direction)
+    )
+    ctx.lineTo(
       // Bottom Left
       ship.Xpos -
         ship.radius * (Math.cos(ship.direction) + Math.sin(ship.direction)),
@@ -156,46 +202,39 @@ let update = () => {
     )
     ctx.closePath()
     ctx.stroke()
+
+    //  TEST FUNCTION
   } else {
-    ship.thrust.x -= (SHIP_DRAG * ship.thrust.x) / FPS
-    ship.thrust.y -= (SHIP_DRAG * ship.thrust.y) / FPS
+    ctx.fillStyle = 'lightgrey'
+    ctx.strokeStyle = 'slategrey'
+    ctx.beginPath()
+    ctx.arc(ship.Xpos, ship.Ypos, ship.radius * 1.3, 0, Math.PI * 2, false)
+    ctx.stroke()
+    ctx.fill()
+    ctx.strokeStyle = 'lightgrey'
+    ctx.beginPath()
+    ctx.arc(ship.Xpos, ship.Ypos, ship.radius * 1.5, 0, Math.PI * 2, false)
+    ctx.stroke()
+    ctx.fill()
+    ctx.strokeStyle = 'slategrey'
+    ctx.beginPath()
+    ctx.arc(ship.Xpos, ship.Ypos, ship.radius * 1.9, 0, Math.PI * 2, false)
+    ctx.stroke()
   }
 
-  // Draw Triangular Ship
-  // ctx.fillStyle= 'green'
-  ctx.strokeStyle = 'white'
-  ctx.lineWidth = SHIP_SIZE / 20
-  ctx.beginPath()
-  ctx.moveTo(
-    // Nose of the Ship
-    ship.Xpos + ship.radius * Math.cos(ship.direction),
-    ship.Ypos - ship.radius * Math.sin(ship.direction)
-  )
-  ctx.lineTo(
-    // Bottom Left
-    ship.Xpos -
-      ship.radius * (Math.cos(ship.direction) + Math.sin(ship.direction)),
-    ship.Ypos +
-      ship.radius * (Math.sin(ship.direction) - Math.cos(ship.direction))
-  )
-
-  ctx.lineTo(
-    // Bottom Right
-    ship.Xpos -
-      ship.radius * (Math.cos(ship.direction) - Math.sin(ship.direction)),
-    ship.Ypos +
-      ship.radius * (Math.sin(ship.direction) + Math.cos(ship.direction))
-  )
-  ctx.closePath()
-  ctx.stroke()
-
-  // if(BOUNDING_BOX) { }
+  if (BOUNDING_BOX) {
+    ctx.strokeStyle = 'lime'
+    ctx.beginPath()
+    ctx.arc(ship.Xpos, ship.Ypos, ship.radius, 0, Math.PI * 2, false)
+    ctx.stroke()
+  }
 
   // draw Asteroids
-  ctx.strokeStyle = 'linen'
-  ctx.lineWidth = SHIP_SIZE / 30
+
   let x, y, radius, direction, verticies, offset
   for (let i = 0; i < asteroids.length; i++) {
+    ctx.strokeStyle = 'linen'
+    ctx.lineWidth = SHIP_SIZE / 30
     x = asteroids[i].x
     y = asteroids[i].y
     radius = asteroids[i].radius
@@ -225,8 +264,54 @@ let update = () => {
     ctx.closePath()
     ctx.stroke()
 
-    // Move Asteroid
+    if (BOUNDING_BOX) {
+      ctx.strokeStyle = 'red'
+      ctx.beginPath()
+      ctx.arc(x, y, radius, 0, Math.PI * 2, false)
+      ctx.stroke()
+    }
 
+    // Move Asteroid
+  }
+
+  if (!isExploding) {
+    for (let i = 0; i < asteroids.length; i++) {
+      if (
+        checkCollision(ship.Xpos, ship.Ypos, asteroids[i].x, asteroids[i].y) <
+        ship.radius + asteroids[i].radius
+      ) {
+        destroyShip()
+      }
+    }
+    // Move Ship
+    ship.Xpos += ship.thrust.x
+    ship.Ypos += ship.thrust.y
+
+    ship.direction += ship.rotation
+  } else {
+    ship.explodeTime--
+
+    if (ship.explodeTime === 0) {
+    }
+  }
+
+  // Rotate Ship
+
+  // Screen Wrap FOR THE SHIP
+  if (ship.Xpos <= 0) {
+    ship.Xpos = canvas.width - ship.radius
+  } else if (ship.Xpos > canvas.width) {
+    // console.log("BOUNDARY")
+    ship.Xpos = 0 + ship.radius
+  }
+
+  if (ship.Ypos <= 0) {
+    ship.Ypos = canvas.height - ship.radius
+  } else if (ship.Ypos > canvas.height) {
+    ship.Ypos = 0 + ship.radius
+  }
+
+  for (let i = 0; i < asteroids.length; i++) {
     asteroids[i].x += asteroids[i].xvelocity
     asteroids[i].y += asteroids[i].yvelocity
 
@@ -243,29 +328,6 @@ let update = () => {
       asteroids[i].x = 0 - asteroids[i].radius
     }
   }
-
-  // Move Ship
-  ship.Xpos += ship.thrust.x
-  ship.Ypos += ship.thrust.y
-
-  // Rotate Ship
-  ship.direction += ship.rotation
-
-  // Screen Wrap FOR THE SHIP
-  if (ship.Xpos <= 0) {
-    ship.Xpos = canvas.width - ship.radius
-  } else if (ship.Xpos > canvas.width) {
-    // console.log("BOUNDARY")
-    ship.Xpos = 0 + ship.radius
-  }
-
-  if (ship.Ypos <= 0) {
-    ship.Ypos = canvas.height - ship.radius
-  } else if (ship.Ypos > canvas.height) {
-    ship.Ypos = 0 + ship.radius
-  }
-
-  //  SCREEN WRAP FOR ASTEROIDS
 
   // END OF UPDATE FUNC
 }

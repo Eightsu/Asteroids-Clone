@@ -8,14 +8,15 @@ let ctx = canvas.getContext('2d')
 const SHIP_SIZE = 40 /* in pixels*/
 const FPS = 30
 const TURN_SPEED = 360
-const SHIP_THRUST = 8
-const DRAG = 0.7
+const SHIP_THRUST = 15
+const SHIP_DRAG = 1
 
 // ASTEROID CONSTANTS
-const AST_NUM = 5
-const AST_SPEED = 40
+const AST_NUM = 3
+const AST_SPEED = 25
 const AST_SIZE = 100
 const AST_VERTICIES = 10
+const AST_DECIMATION = 0.3
 
 // Ship
 let ship = {
@@ -35,10 +36,8 @@ let asteroids = []
 
 // Asteroids
 
-const checkCollision = (x1,y1,x2,y2) => {
-
-  return Math.sqrt(Math.pow(x2-x1, 2) + Math.pow(y2-y1,2))
-
+const checkCollision = (x1, y1, x2, y2) => {
+  return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
 }
 
 const generateAsteroidBelt = () => {
@@ -46,12 +45,10 @@ const generateAsteroidBelt = () => {
 
   let x, y
   for (let i = 0; i < AST_NUM - 1; i++) {
-
-    do{
+    do {
       x = Math.floor(Math.random() * canvas.width)
       y = Math.floor(Math.random() * canvas.height)
-      
-    } while (checkCollision(ship.Xpos, ship.Ypos, x , y) < AST_SIZE * 2)
+    } while (checkCollision(ship.Xpos, ship.Ypos, x, y) < AST_SIZE * 2)
     asteroids.push(newAsteroid(x, y))
     // (;
   }
@@ -68,13 +65,20 @@ const newAsteroid = (x, y) => {
     radius: AST_SIZE / 2,
     direction: Math.random() * Math.PI * 2,
     verticies: Math.floor(
-      Math.random() * (AST_VERTICIES + 3 ) + AST_VERTICIES / 2
+      Math.random() * (AST_VERTICIES + 2) + AST_VERTICIES / 2
+    ),
+    offset: []
+  }
+
+  for (let i = 0; i < asteroid.verticies; i++) {
+    asteroid.offset.push(
+      Math.random() * AST_DECIMATION * 4 + 1 - AST_DECIMATION
     )
   }
   return asteroid
 }
 
-generateAsteroidBelt();
+generateAsteroidBelt()
 
 document.addEventListener('keydown', keyDown)
 document.addEventListener('keyup', keyUp)
@@ -150,8 +154,8 @@ let update = () => {
     ctx.closePath()
     ctx.stroke()
   } else {
-    ship.thrust.x -= (DRAG * ship.thrust.x) / FPS
-    ship.thrust.y -= (DRAG * ship.thrust.y) / FPS
+    ship.thrust.x -= (SHIP_DRAG * ship.thrust.x) / FPS
+    ship.thrust.y -= (SHIP_DRAG * ship.thrust.y) / FPS
   }
 
   // Draw Triangular Ship
@@ -185,28 +189,41 @@ let update = () => {
   // draw Asteroids
   ctx.strokeStyle = 'magenta'
   ctx.lineWidth = SHIP_SIZE / 42
-  let x, y, radius, direction, verticies
+  let x, y, radius, direction, verticies, offset
   for (let i = 0; i < asteroids.length; i++) {
     x = asteroids[i].x
     y = asteroids[i].y
     radius = asteroids[i].radius
     direction = asteroids[i].direction
     verticies = asteroids[i].verticies
+    offset = asteroids[i].offset
 
     ctx.beginPath()
     ctx.moveTo(
-      x + radius * Math.cos(direction),
-      y + radius * Math.sin(direction)
+      x + radius * offset[0] * Math.cos(direction),
+      y + radius * offset[0] * Math.sin(direction)
     )
 
-    for (let j = 0; j < verticies; j++) {
+    // graph polygon
+    for (let j = 2; j < verticies; j++) {
       ctx.lineTo(
-        x + radius * Math.cos(direction + (j * Math.PI * 2) / verticies),
-        y + radius * Math.sin(direction + (j * Math.PI * 2) / verticies)
+        x +
+          radius *
+            offset[j] *
+            Math.cos(direction + (j * Math.PI * 2) / verticies),
+        y +
+          radius *
+            offset[j] *
+            Math.sin(direction + (j * Math.PI * 2) / verticies)
       )
     }
     ctx.closePath()
     ctx.stroke()
+
+    // Move Asteroid
+
+    asteroids[i].x += asteroids[i].xvelocity
+    asteroids[i].y += asteroids[i].yvelocity
   }
 
   // Move Ship
@@ -216,7 +233,7 @@ let update = () => {
   // Rotate Ship
   ship.direction += ship.rotation
 
-  // Screen Wrap
+  // Screen Wrap FOR THE SHIP
   if (ship.Xpos <= 0) {
     ship.Xpos = canvas.width - ship.radius
   } else if (ship.Xpos > canvas.width) {
@@ -229,6 +246,8 @@ let update = () => {
   } else if (ship.Ypos > canvas.height) {
     ship.Ypos = 0 + ship.radius
   }
+
+  // END OF UPDATE FUNC
 }
 const gameloop = () => {
   setInterval(update, 1000 / FPS)

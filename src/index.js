@@ -13,11 +13,13 @@ const SHIP_DRAG = 0.7
 const SHIP_EXPLODE_DURATION = 0.4
 const SHIP_I_DURATION = 1
 const SHIP_BLINK_DURATION = 0.1
+
+// WEAPON CONSTANTS
 const MAX_SHIP_BULLETS = 10
 const SHIP_BULLET_SPEED = 200
 
 // ASTEROID CONSTANTS
-const AST_NUM = 5
+const AST_NUM = 3
 const AST_SPEED = 100
 const AST_SIZE = 100
 const AST_VERTICIES = 10
@@ -75,8 +77,8 @@ const shootBullet = () => {
     ship.bullets.push({
       x: ship.Xpos + ship.radius * Math.cos(ship.direction),
       y: ship.Ypos - ship.radius * Math.sin(ship.direction),
-      xBulletVelocity: (SHIP_BULLET_SPEED * Math.cos(ship.rotation)) / FPS,
-      yBulletVelocity: (SHIP_BULLET_SPEED * Math.sin(ship.rotation)) / FPS
+      xBulletVelocity: SHIP_BULLET_SPEED * Math.cos(ship.direction) / FPS,
+      yBulletVelocity: -SHIP_BULLET_SPEED * Math.sin(ship.direction) / FPS
     })
   }
 
@@ -132,8 +134,7 @@ function keyDown(e) {
       ship.rotation = ((-TURN_SPEED / 180) * Math.PI) / FPS
       break
     case 32: // spacebar
-      // shootBullet();
-
+      shootBullet()
       break
 
     default:
@@ -268,6 +269,23 @@ let update = () => {
     ctx.stroke()
   }
 
+  // Draw Bullets
+  for (let i = 0; i < ship.bullets.length; i++) {
+    ctx.fillStyle = 'red'
+    ctx.strokeStyle = 'red'
+    ctx.beginPath()
+    ctx.arc(
+      ship.bullets[i].x,
+      ship.bullets[i].y,
+      SHIP_SIZE / 15,
+      0,
+      Math.PI * 2,
+      false
+    )
+    ctx.fill()
+    ctx.stroke()
+  }
+
   // draw Asteroids
 
   let x, y, radius, direction, verticies, offset
@@ -371,6 +389,12 @@ let update = () => {
       asteroids[i].x = 0 - asteroids[i].radius
     }
   }
+
+  for(let i = 0; i < ship.bullets.length; i++){
+    ship.bullets[i].x += ship.bullets[i].xBulletVelocity
+    ship.bullets[i].y += ship.bullets[i].yBulletVelocity
+    // console.log('hello')
+  }
   // console.log(isExploding)
   // END OF UPDATE FUNC
 }
@@ -378,4 +402,4 @@ const gameloop = () => {
   setInterval(update, 1000 / FPS)
 }
 
-// gameloop()
+gameloop()

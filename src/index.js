@@ -11,9 +11,11 @@ const TURN_SPEED = 360
 const SHIP_THRUST = 15
 const SHIP_DRAG = 1
 const SHIP_EXPLODE_DURATION = 0.2
+const SHIP_I_DURATION = 2
+const SHIP_BLINK_DURATION = 0.4
 
 // ASTEROID CONSTANTS
-const AST_NUM = 3
+const AST_NUM = 50
 const AST_SPEED = 100
 const AST_SIZE = 100
 const AST_VERTICIES = 10
@@ -52,6 +54,8 @@ const newShip = () => {
     Ypos: canvas.height / 2,
     radius: SHIP_SIZE / 2,
     direction: (90 / 180) * Math.PI /* deg to rad */,
+    blinkNum: Math.ceil(SHIP_I_DURATION / SHIP_BLINK_DURATION),
+    blinkTime: Math.ceil(SHIP_BLINK_DURATION * FPS),
     rotation: 0,
     thrusting: false,
     thrust: {
@@ -133,6 +137,7 @@ function keyUp(e) {
 
 let update = () => {
   let isExploding = ship.explodeTime > 0
+  let onBlink = ship.blinkNum % 2 === 0
   // Draw BG
 
   ctx.fillStyle = 'black'
@@ -144,7 +149,7 @@ let update = () => {
     ship.thrust.y -= (SHIP_THRUST * Math.sin(ship.direction)) / FPS
 
     // Draw Thrust
-    if (!isExploding) {
+    if (!isExploding && onBlink) {
       ctx.fillStyle = 'black'
       ctx.strokeStyle = 'blue'
       ctx.lineWidth = SHIP_SIZE / 10
@@ -177,33 +182,41 @@ let update = () => {
   // ctx.fillStyle= 'green'
 
   if (!isExploding) {
-    ctx.strokeStyle = 'white'
-    ctx.lineWidth = SHIP_SIZE / 20
-    ctx.beginPath()
-    ctx.moveTo(
-      // Nose of the Ship
-      ship.Xpos + ship.radius * Math.cos(ship.direction),
-      ship.Ypos - ship.radius * Math.sin(ship.direction)
-    )
-    ctx.lineTo(
-      // Bottom Left
-      ship.Xpos -
-        ship.radius * (Math.cos(ship.direction) + Math.sin(ship.direction)),
-      ship.Ypos +
-        ship.radius * (Math.sin(ship.direction) - Math.cos(ship.direction))
-    )
+    if (onBlink) {
+      ctx.strokeStyle = 'white'
+      ctx.lineWidth = SHIP_SIZE / 20
+      ctx.beginPath()
+      ctx.moveTo(
+        // Nose of the Ship
+        ship.Xpos + ship.radius * Math.cos(ship.direction),
+        ship.Ypos - ship.radius * Math.sin(ship.direction)
+      )
+      ctx.lineTo(
+        // Bottom Left
+        ship.Xpos -
+          ship.radius * (Math.cos(ship.direction) + Math.sin(ship.direction)),
+        ship.Ypos +
+          ship.radius * (Math.sin(ship.direction) - Math.cos(ship.direction))
+      )
 
-    ctx.lineTo(
-      // Bottom Right
-      ship.Xpos -
-        ship.radius * (Math.cos(ship.direction) - Math.sin(ship.direction)),
-      ship.Ypos +
-        ship.radius * (Math.sin(ship.direction) + Math.cos(ship.direction))
-    )
-    ctx.closePath()
-    ctx.stroke()
+      ctx.lineTo(
+        // Bottom Right
+        ship.Xpos -
+          ship.radius * (Math.cos(ship.direction) - Math.sin(ship.direction)),
+        ship.Ypos +
+          ship.radius * (Math.sin(ship.direction) + Math.cos(ship.direction))
+      )
+      ctx.closePath()
+      ctx.stroke()
+    }
 
-    //  TEST FUNCTION
+    if (ship.blinkNum > 0) {
+      ship.blinkTime--
+      if (ship.blinkTime === 0) {
+        ship.blinkTime = Math.ceil(SHIP_BLINK_DURATION * FPS)
+        ship.blinkNum--
+      }
+    }
   } else {
     ctx.fillStyle = 'lightgrey'
     ctx.strokeStyle = 'slategrey'
@@ -275,24 +288,26 @@ let update = () => {
   }
 
   if (!isExploding) {
-    for (let i = 0; i < asteroids.length; i++) {
-      if (
-        checkCollision(ship.Xpos, ship.Ypos, asteroids[i].x, asteroids[i].y) <
-        ship.radius + asteroids[i].radius
-      ) {
-        destroyShip()
+    if (ship.blinkNum === 0) {
+      for (let i = 0; i < asteroids.length; i++) {
+        if (
+          checkCollision(ship.Xpos, ship.Ypos, asteroids[i].x, asteroids[i].y) <
+          ship.radius + asteroids[i].radius
+        ) {
+          destroyShip()
+        }
       }
-    }
-    // Move Ship
-    ship.Xpos += ship.thrust.x
-    ship.Ypos += ship.thrust.y
+      // Move Ship
+      ship.Xpos += ship.thrust.x
+      ship.Ypos += ship.thrust.y
 
-    ship.direction += ship.rotation
-  } else {
-    ship.explodeTime--
+      ship.direction += ship.rotation
+    } else {
+      ship.explodeTime--
 
-    if (ship.explodeTime === 0) {
-      ship = newShip()
+      if (ship.explodeTime === 0) {
+        ship = newShip()
+      }
     }
   }
 
@@ -329,7 +344,7 @@ let update = () => {
       asteroids[i].x = 0 - asteroids[i].radius
     }
   }
-
+  // console.log(ship.blinkNum)
   // END OF UPDATE FUNC
 }
 const gameloop = () => {

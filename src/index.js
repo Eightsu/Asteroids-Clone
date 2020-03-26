@@ -5,8 +5,9 @@ import { ctx, canvas, UI } from "./global";
 import { checkCollision } from "./utils";
 
 const FPS = 30;
+const PLAYER_LIVES = 3;
 // TEST CONSTANTS
-const BOUNDING_BOX = true;
+const BOUNDING_BOX = false;
 
 //  GLOBALS
 let asteroids = [];
@@ -14,6 +15,7 @@ let ship;
 let level;
 let text; // info for player
 let textAlpha; // fade out
+let lives;
 
 // Asteroids
 
@@ -101,6 +103,30 @@ const newAsteroid = (x, y, radius) => {
   return asteroid;
 };
 
+const drawShip = (XPos, YPos, direction) => {
+  ctx.strokeStyle = "rgba(255,255,255,0.2)";
+  ctx.lineWidth = SHIP.SHIP_SIZE / 20;
+  ctx.beginPath();
+  ctx.moveTo(
+    // Nose of the Ship
+    XPos + ship.radius * Math.cos(direction),
+    YPos - ship.radius * Math.sin(direction)
+  );
+  ctx.lineTo(
+    // Bottom Left
+    XPos - ship.radius * (Math.cos(direction) + Math.sin(direction)),
+    YPos + ship.radius * (Math.sin(direction) - Math.cos(direction))
+  );
+
+  ctx.lineTo(
+    // Bottom Right
+    XPos - ship.radius * (Math.cos(direction) - Math.sin(direction)),
+    YPos + ship.radius * (Math.sin(direction) + Math.cos(direction))
+  );
+  ctx.closePath();
+  ctx.stroke();
+};
+
 const destroyShip = () => {
   ship.explodeTime = Math.ceil(SHIP.SHIP_EXPLODE_DURATION * FPS);
   // ship = newShip()
@@ -113,6 +139,7 @@ const newLevel = () => {
 };
 
 const newGame = () => {
+  lives = PLAYER_LIVES;
   level = 0;
   ship = newShip();
   newLevel();
@@ -364,6 +391,15 @@ let update = () => {
     ctx.font = ` ${UI.FONT_SIZE}px verdana`;
     ctx.fillText(text, canvas.width / 2, canvas.height / 1.2);
     textAlpha -= textAlpha / UI.TEXT_FADE_DURATION / FPS;
+  }
+
+  //  SHOW PLAYER LIFE COUNT
+  for (let i = 0; i < lives; i++) {
+    drawShip(
+      SHIP.SHIP_SIZE + i * SHIP.SHIP_SIZE * 1.1,
+      SHIP.SHIP_SIZE,
+      0.5 * Math.PI
+    );
   }
 
   if (!isExploding) {

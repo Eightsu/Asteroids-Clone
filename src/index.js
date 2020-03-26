@@ -7,7 +7,7 @@ let ctx = canvas.getContext('2d')
 // SHIP CONSTANTS
 const SHIP_SIZE = 40 /* in pixels*/
 const FPS = 30
-const TURN_SPEED = 360
+const SHIP_TURN_SPEED = 360
 const SHIP_THRUST = 5
 const SHIP_DRAG = 0.7
 const SHIP_EXPLODE_DURATION = 0.4
@@ -15,8 +15,10 @@ const SHIP_I_DURATION = 1
 const SHIP_BLINK_DURATION = 0.1
 
 // WEAPON CONSTANTS
-const MAX_SHIP_BULLETS = 10
-const SHIP_BULLET_SPEED = 300
+const BULLET_MAX_NUMBER = 10
+const BULLET_SPEED = 700
+const BULLET_MAX_DISTANCE = 0.5
+
 
 // ASTEROID CONSTANTS
 const AST_NUM = 0
@@ -73,12 +75,13 @@ const newShip = () => {
 }
 
 const shootBullet = () => {
-  if (ship.enableShooting && ship.bullets.length < MAX_SHIP_BULLETS) {
+  if (ship.enableShooting && ship.bullets.length < BULLET_MAX_NUMBER) {
     ship.bullets.push({
       x: ship.Xpos + ship.radius * Math.cos(ship.direction),
       y: ship.Ypos - ship.radius * Math.sin(ship.direction),
-      xBulletVelocity: SHIP_BULLET_SPEED * Math.cos(ship.direction) / FPS,
-      yBulletVelocity: -SHIP_BULLET_SPEED * Math.sin(ship.direction) / FPS
+      xBulletVelocity: BULLET_SPEED * Math.cos(ship.direction) / FPS,
+      yBulletVelocity: -BULLET_SPEED * Math.sin(ship.direction) / FPS,
+      distance: 0
     })
   }
 
@@ -124,14 +127,14 @@ document.addEventListener('keyup', keyUp)
 function keyDown(e) {
   switch (e.keyCode) {
     case 37: // left arrow (rotate ship left)
-      ship.rotation = ((TURN_SPEED / 180) * Math.PI) / FPS
+      ship.rotation = ((SHIP_TURN_SPEED / 180) * Math.PI) / FPS
       break
     case 38: // up arrow (thrust the ship forward)
       ship.thrusting = true
       // console.log('thrust')
       break
     case 39: // right arrow (rotate ship right)
-      ship.rotation = ((-TURN_SPEED / 180) * Math.PI) / FPS
+      ship.rotation = ((-SHIP_TURN_SPEED / 180) * Math.PI) / FPS
       break
     case 32: // spacebar
       shootBullet()
@@ -372,6 +375,7 @@ let update = () => {
     ship.Ypos = 0 + ship.radius
   }
 
+  // ASTEROID LOGIC
   for (let i = 0; i < asteroids.length; i++) {
     asteroids[i].x += asteroids[i].asteroidXVelocity
     asteroids[i].y += asteroids[i].asteroidYVelocity
@@ -390,9 +394,21 @@ let update = () => {
     }
   }
 
-  for(let i = 0; i < ship.bullets.length; i++){
+  // BULLET LOGIC
+  for(let i = ship.bullets.length - 1; i >= 0; i--){
+
+if(ship.bullets[i].distance > BULLET_MAX_DISTANCE * canvas.width) {
+
+  ship.bullets.splice(i,1)
+  continue; 
+  // skip to next iteration, otherwise crash
+}
+
     ship.bullets[i].x += ship.bullets[i].xBulletVelocity
     ship.bullets[i].y += ship.bullets[i].yBulletVelocity
+
+    // calculate bullet distance
+    ship.bullets[i].distance += Math.sqrt(Math.pow(ship.bullets[i].xBulletVelocity, 2) + Math.pow(ship.bullets[i].yBulletVelocity,2))
 
     //  screen wrap X
     if(ship.bullets[i].x < 0) {

@@ -1,18 +1,8 @@
 import "./styles.css";
+import { SHIP, newShip } from "./ship";
+import { ctx, canvas } from "./global";
 
-// Initial
-let canvas = document.getElementById("app");
-let ctx = canvas.getContext("2d");
-
-// SHIP CONSTANTS
-const SHIP_SIZE = 40; /* in pixels*/
 const FPS = 30;
-const SHIP_TURN_SPEED = 360;
-const SHIP_THRUST = 5;
-const SHIP_DRAG = 0.7;
-const SHIP_EXPLODE_DURATION = 0.4;
-const SHIP_I_DURATION = 1;
-const SHIP_BLINK_DURATION = 0.1;
 
 // WEAPON CONSTANTS
 const BULLET_MAX_NUMBER = 10;
@@ -28,8 +18,6 @@ const AST_DECIMATION = 0.4;
 
 // TEST CONSTANTS
 const BOUNDING_BOX = true;
-
-// Ship
 
 let asteroids = [];
 
@@ -70,26 +58,6 @@ const destroyAsteroid = index => {
   asteroids.splice(index, 1);
 };
 
-const newShip = () => {
-  return {
-    Xpos: canvas.width / 2,
-    Ypos: canvas.height / 2,
-    radius: SHIP_SIZE / 2,
-    direction: (90 / 180) * Math.PI /* deg to rad */,
-    blinkNum: Math.ceil(SHIP_I_DURATION / SHIP_BLINK_DURATION),
-    blinkTime: Math.ceil(SHIP_BLINK_DURATION * FPS),
-    rotation: 0,
-    explodeTime: 0,
-    thrusting: false,
-    enableShooting: true,
-    bullets: [],
-    thrust: {
-      x: 0,
-      y: 0
-    }
-  };
-};
-
 const shootBullet = () => {
   if (ship.enableShooting && ship.bullets.length < BULLET_MAX_NUMBER) {
     ship.bullets.push({
@@ -97,7 +65,8 @@ const shootBullet = () => {
       y: ship.Ypos - ship.radius * Math.sin(ship.direction),
       xBulletVelocity: (BULLET_SPEED * Math.cos(ship.direction)) / FPS,
       yBulletVelocity: (-BULLET_SPEED * Math.sin(ship.direction)) / FPS,
-      distance: 0
+      distance: 0,
+      explodeTime: 0
     });
   }
 
@@ -131,7 +100,7 @@ const newAsteroid = (x, y, radius) => {
 };
 
 const destroyShip = () => {
-  ship.explodeTime = Math.ceil(SHIP_EXPLODE_DURATION * FPS);
+  ship.explodeTime = Math.ceil(SHIP.SHIP_EXPLODE_DURATION * FPS);
   // ship = newShip()
 };
 
@@ -143,14 +112,14 @@ document.addEventListener("keyup", keyUp);
 function keyDown(e) {
   switch (e.keyCode) {
     case 37: // left arrow (rotate ship left)
-      ship.rotation = ((SHIP_TURN_SPEED / 180) * Math.PI) / FPS;
+      ship.rotation = ((SHIP.SHIP_TURN_SPEED / 180) * Math.PI) / FPS;
       break;
     case 38: // up arrow (thrust the ship forward)
       ship.thrusting = true;
       // console.log('thrust')
       break;
     case 39: // right arrow (rotate ship right)
-      ship.rotation = ((-SHIP_TURN_SPEED / 180) * Math.PI) / FPS;
+      ship.rotation = (((SHIP.SHIP_TURN_SPEED * -1) / 180) * Math.PI) / FPS;
       break;
     case 32: // spacebar
       shootBullet();
@@ -191,14 +160,14 @@ let update = () => {
 
   // Thrust
   if (ship.thrusting) {
-    ship.thrust.x += (SHIP_THRUST * Math.cos(ship.direction)) / FPS;
-    ship.thrust.y -= (SHIP_THRUST * Math.sin(ship.direction)) / FPS;
+    ship.thrust.x += (SHIP.SHIP_THRUST * Math.cos(ship.direction)) / FPS;
+    ship.thrust.y -= (SHIP.SHIP_THRUST * Math.sin(ship.direction)) / FPS;
 
     // Draw Thrust
     if (!isExploding && onBlink) {
       ctx.fillStyle = "black";
       ctx.strokeStyle = "blue";
-      ctx.lineWidth = SHIP_SIZE / 10;
+      ctx.lineWidth = SHIP.SHIP_SIZE / 10;
       // ctx.globalAlpha = 0.2
       ctx.beginPath();
       ctx.moveTo(
@@ -220,8 +189,8 @@ let update = () => {
       ctx.stroke();
     }
   } else {
-    ship.thrust.x -= (SHIP_DRAG * ship.thrust.x) / FPS;
-    ship.thrust.y -= (SHIP_DRAG * ship.thrust.y) / FPS;
+    ship.thrust.x -= (SHIP.SHIP_DRAG * ship.thrust.x) / FPS;
+    ship.thrust.y -= (SHIP.SHIP_DRAG * ship.thrust.y) / FPS;
   }
 
   // Draw Triangular Ship
@@ -230,7 +199,7 @@ let update = () => {
   if (!isExploding) {
     if (onBlink) {
       ctx.strokeStyle = "white";
-      ctx.lineWidth = SHIP_SIZE / 20;
+      ctx.lineWidth = SHIP.SHIP_SIZE / 20;
       ctx.beginPath();
       ctx.moveTo(
         // Nose of the Ship
@@ -259,7 +228,7 @@ let update = () => {
     if (ship.blinkNum > 0) {
       ship.blinkTime--;
       if (ship.blinkTime === 0) {
-        ship.blinkTime = Math.ceil(SHIP_BLINK_DURATION * FPS);
+        ship.blinkTime = Math.ceil(SHIP.SHIP_BLINK_DURATION * FPS);
         ship.blinkNum--;
       }
     }
@@ -290,19 +259,21 @@ let update = () => {
 
   // Draw Bullets
   for (let i = 0; i < ship.bullets.length; i++) {
-    ctx.fillStyle = "red";
-    ctx.strokeStyle = "red";
-    ctx.beginPath();
-    ctx.arc(
-      ship.bullets[i].x,
-      ship.bullets[i].y,
-      SHIP_SIZE / 15,
-      0,
-      Math.PI * 2,
-      false
-    );
-    ctx.fill();
-    ctx.stroke();
+    if (ship.bullets[i].explodeTime === 0) {
+      ctx.fillStyle = "red";
+      ctx.strokeStyle = "red";
+      ctx.beginPath();
+      ctx.arc(
+        ship.bullets[i].x,
+        ship.bullets[i].y,
+        SHIP.SHIP_SIZE / 15,
+        0,
+        Math.PI * 2,
+        false
+      );
+      ctx.fill();
+      ctx.stroke();
+    }
   }
 
   // detect bullet collision with asteroids.
@@ -319,11 +290,8 @@ let update = () => {
       by = ship.bullets[j].y;
 
       if (checkCollision(ax, ay, bx, by) < ar) {
-        // if true, remove bullet
-        ship.bullets.splice(j, 1);
-
         // for now remove asteroid
-
+        ship.bullets.splice(j, 1);
         destroyAsteroid(i);
         break;
       }
@@ -335,7 +303,7 @@ let update = () => {
   let x, y, radius, direction, verticies, offset;
   for (let i = 0; i < asteroids.length; i++) {
     ctx.strokeStyle = "linen";
-    ctx.lineWidth = SHIP_SIZE / 30;
+    ctx.lineWidth = SHIP.SHIP_SIZE / 30;
     x = asteroids[i].x;
     y = asteroids[i].y;
     radius = asteroids[i].radius;
@@ -445,6 +413,7 @@ let update = () => {
       // skip to next iteration, otherwise crash
     }
 
+    // move bullets
     ship.bullets[i].x += ship.bullets[i].xBulletVelocity;
     ship.bullets[i].y += ship.bullets[i].yBulletVelocity;
 

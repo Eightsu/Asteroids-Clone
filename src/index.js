@@ -1,7 +1,7 @@
 import "./styles.css";
 import { SHIP, newShip, BULLETS } from "./ship";
 import { ASTEROIDS } from "./asteroid";
-import { ctx, canvas } from "./global";
+import { ctx, canvas, UI } from "./global";
 import { checkCollision } from "./utils";
 
 const FPS = 30;
@@ -12,8 +12,8 @@ const BOUNDING_BOX = true;
 let asteroids = [];
 let ship;
 let level;
-
-
+let text; // info for player
+let textAlpha; // fade out
 
 // Asteroids
 
@@ -48,9 +48,9 @@ const destroyAsteroid = index => {
     asteroids.push(newAsteroid(x, y, ASTEROIDS.AST_SIZE / 8));
     asteroids.push(newAsteroid(x, y, ASTEROIDS.AST_SIZE / 8));
   }
-  asteroids.splice(index, 1)
-  if(asteroids.length === 0) {
-    level++
+  asteroids.splice(index, 1);
+  if (asteroids.length === 0) {
+    level++;
     newLevel();
   }
 };
@@ -72,7 +72,7 @@ const shootBullet = () => {
 };
 
 const newAsteroid = (x, y, radius) => {
-  let lvlMultiplier = 1 + .15 * level
+  let lvlMultiplier = 1 + 0.15 * level;
   let asteroid = {
     x: x,
     asteroidXVelocity:
@@ -107,18 +107,17 @@ const destroyShip = () => {
 };
 
 const newLevel = () => {
+  text = `LEVEL ${level + 1}`;
+  textAlpha = 1.0;
   generateAsteroidBelt();
-
-}
+};
 
 const newGame = () => {
-  level = 0
+  level = 0;
   ship = newShip();
-  newLevel()
-
-}
+  newLevel();
+};
 newGame();
-
 
 document.addEventListener("keydown", keyDown);
 document.addEventListener("keyup", keyUp);
@@ -358,6 +357,15 @@ let update = () => {
     // Move Asteroid
   }
 
+  // GAME TEXT
+  if (textAlpha >= 0) {
+    ctx.textAlign = "center";
+    ctx.fillStyle = `rgba(255,255,255,${textAlpha})`;
+    ctx.font = ` ${UI.FONT_SIZE}px verdana`;
+    ctx.fillText(text, canvas.width / 2, canvas.height / 1.2);
+    textAlpha -= textAlpha / UI.TEXT_FADE_DURATION / FPS;
+  }
+
   if (!isExploding) {
     if (ship.blinkNum === 0) {
       for (let i = 0; i < asteroids.length; i++) {
@@ -456,4 +464,4 @@ const gameloop = () => {
   setInterval(update, 1000 / FPS);
 };
 
-// gameloop();
+gameloop();

@@ -1,42 +1,31 @@
 import "./styles.css";
-import { SHIP, newShip } from "./ship";
+import { SHIP, newShip, BULLETS } from "./ship";
+import { ASTEROIDS } from "./asteroid";
 import { ctx, canvas } from "./global";
+import { checkCollision } from "./utils";
 
 const FPS = 30;
-
-// WEAPON CONSTANTS
-const BULLET_MAX_NUMBER = 10;
-const BULLET_SPEED = 700;
-const BULLET_MAX_DISTANCE = 0.5;
-
-// ASTEROID CONSTANTS
-const AST_NUM = 3;
-const AST_SPEED = 140;
-const AST_SIZE = 100;
-const AST_VERTICIES = 10;
-const AST_DECIMATION = 0.4;
-
 // TEST CONSTANTS
 const BOUNDING_BOX = true;
 
 let asteroids = [];
+let ship = newShip();
 
 // Asteroids
-
-const checkCollision = (x1, y1, x2, y2) => {
-  return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
-};
 
 const generateAsteroidBelt = () => {
   asteroids = [];
 
   let x, y;
-  for (let i = 0; i < AST_NUM - 1; i++) {
+  for (let i = 0; i < ASTEROIDS.AST_NUM - 1; i++) {
     do {
       x = Math.floor(Math.random() * canvas.width);
       y = Math.floor(Math.random() * canvas.height);
-    } while (checkCollision(ship.Xpos, ship.Ypos, x, y) < AST_SIZE * 2);
-    asteroids.push(newAsteroid(x, y, Math.ceil(AST_SIZE / 2)));
+    } while (
+      checkCollision(ship.Xpos, ship.Ypos, x, y) <
+      ASTEROIDS.AST_SIZE * 2
+    );
+    asteroids.push(newAsteroid(x, y, Math.ceil(ASTEROIDS.AST_SIZE / 2)));
     // (;
   }
 };
@@ -47,24 +36,25 @@ const destroyAsteroid = index => {
   let y = asteroids[index].y;
   let radius = asteroids[index].radius;
 
-  if (radius === Math.ceil(AST_SIZE / 2)) {
+  if (radius === Math.ceil(ASTEROIDS.AST_SIZE / 2)) {
     //  make two new asteroids from original asteroid
-    asteroids.push(newAsteroid(x, y, AST_SIZE / 4));
-    asteroids.push(newAsteroid(x, y, AST_SIZE / 4));
-  } else if (radius === Math.ceil(AST_SIZE / 4)) {
-    asteroids.push(newAsteroid(x, y, AST_SIZE / 8));
-    asteroids.push(newAsteroid(x, y, AST_SIZE / 8));
+    asteroids.push(newAsteroid(x, y, ASTEROIDS.AST_SIZE / 4));
+    asteroids.push(newAsteroid(x, y, ASTEROIDS.AST_SIZE / 4));
+  } else if (radius === Math.ceil(ASTEROIDS.AST_SIZE / 4)) {
+    asteroids.push(newAsteroid(x, y, ASTEROIDS.AST_SIZE / 8));
+    asteroids.push(newAsteroid(x, y, ASTEROIDS.AST_SIZE / 8));
   }
   asteroids.splice(index, 1);
 };
 
 const shootBullet = () => {
-  if (ship.enableShooting && ship.bullets.length < BULLET_MAX_NUMBER) {
+  if (ship.enableShooting && ship.bullets.length < BULLETS.BULLET_MAX_NUMBER) {
     ship.bullets.push({
       x: ship.Xpos + ship.radius * Math.cos(ship.direction),
       y: ship.Ypos - ship.radius * Math.sin(ship.direction),
-      xBulletVelocity: (BULLET_SPEED * Math.cos(ship.direction)) / FPS,
-      yBulletVelocity: (-BULLET_SPEED * Math.sin(ship.direction)) / FPS,
+      xBulletVelocity: (BULLETS.BULLET_SPEED * Math.cos(ship.direction)) / FPS,
+      yBulletVelocity:
+        (BULLETS.BULLET_SPEED * -1 * Math.sin(ship.direction)) / FPS,
       distance: 0,
       explodeTime: 0
     });
@@ -73,27 +63,30 @@ const shootBullet = () => {
   ship.enableShooting = false;
 };
 
-let ship = newShip();
-
 const newAsteroid = (x, y, radius) => {
   let asteroid = {
     x: x,
     asteroidXVelocity:
-      ((Math.random() * AST_SPEED) / FPS) * (Math.random() < 0.6 ? 1 : -1),
+      ((Math.random() * ASTEROIDS.AST_SPEED) / FPS) *
+      (Math.random() < 0.6 ? 1 : -1),
     y: y,
     asteroidYVelocity:
-      ((Math.random() * AST_SPEED) / FPS) * (Math.random() < 0.6 ? 1 : -1),
+      ((Math.random() * ASTEROIDS.AST_SPEED) / FPS) *
+      (Math.random() < 0.6 ? 1 : -1),
     radius: radius,
     direction: Math.random() * Math.PI * 2,
     verticies: Math.floor(
-      Math.random() * (AST_VERTICIES + 2) + AST_VERTICIES / 2
+      Math.random() * (ASTEROIDS.AST_VERTICIES + 2) +
+        ASTEROIDS.AST_VERTICIES / 2
     ),
     offset: []
   };
 
   for (let i = 0; i < asteroid.verticies; i++) {
     asteroid.offset.push(
-      Math.random() * AST_DECIMATION * 4 + 1 - AST_DECIMATION
+      Math.random() * ASTEROIDS.AST_DECIMATION * 4 +
+        1 -
+        ASTEROIDS.AST_DECIMATION
     );
   }
   return asteroid;
@@ -109,6 +102,7 @@ generateAsteroidBelt();
 document.addEventListener("keydown", keyDown);
 document.addEventListener("keyup", keyUp);
 
+// CONTROLS
 function keyDown(e) {
   switch (e.keyCode) {
     case 37: // left arrow (rotate ship left)
@@ -407,7 +401,7 @@ let update = () => {
 
   // BULLET LOGIC
   for (let i = ship.bullets.length - 1; i >= 0; i--) {
-    if (ship.bullets[i].distance > BULLET_MAX_DISTANCE * canvas.width) {
+    if (ship.bullets[i].distance > BULLETS.BULLET_MAX_DISTANCE * canvas.width) {
       ship.bullets.splice(i, 1);
       continue;
       // skip to next iteration, otherwise crash
@@ -435,10 +429,7 @@ let update = () => {
     } else if (ship.bullets[i].y > canvas.height) {
       ship.bullets[i].y = 0;
     }
-    // console.log('hello')
   }
-  // console.log(isExploding)
-  // END OF UPDATE FUNC
 };
 const gameloop = () => {
   setInterval(update, 1000 / FPS);

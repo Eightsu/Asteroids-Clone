@@ -16,17 +16,17 @@ const SHIP_BLINK_DURATION = 0.1
 
 // WEAPON CONSTANTS
 const MAX_SHIP_BULLETS = 10
-const SHIP_BULLET_SPEED = 200
+const SHIP_BULLET_SPEED = 300
 
 // ASTEROID CONSTANTS
-const AST_NUM = 3
+const AST_NUM = 0
 const AST_SPEED = 100
 const AST_SIZE = 100
 const AST_VERTICIES = 10
 const AST_DECIMATION = 0.3
 
 // TEST CONSTANTS
-const BOUNDING_BOX = false
+const BOUNDING_BOX = true
 
 // Ship
 
@@ -393,6 +393,19 @@ let update = () => {
   for(let i = 0; i < ship.bullets.length; i++){
     ship.bullets[i].x += ship.bullets[i].xBulletVelocity
     ship.bullets[i].y += ship.bullets[i].yBulletVelocity
+
+    //  screen wrap X
+    if(ship.bullets[i].x < 0) {
+      ship.bullets[i].x = canvas.width
+    } else if (ship.bullets[i].x > canvas.width) {
+      ship.bullets[i].x = 0
+    }
+    //  screen wrap Y
+    if(ship.bullets[i].y < 0) {
+      ship.bullets[i].y = canvas.height
+    } else if (ship.bullets[i].y > canvas.height) {
+      ship.bullets[i].y = 0
+    }
     // console.log('hello')
   }
   // console.log(isExploding)

@@ -8,8 +8,12 @@ const FPS = 30;
 // TEST CONSTANTS
 const BOUNDING_BOX = true;
 
+//  GLOBALS
 let asteroids = [];
-let ship = newShip();
+let ship;
+let level;
+
+
 
 // Asteroids
 
@@ -17,7 +21,7 @@ const generateAsteroidBelt = () => {
   asteroids = [];
 
   let x, y;
-  for (let i = 0; i < ASTEROIDS.AST_NUM - 1; i++) {
+  for (let i = 0; i < ASTEROIDS.AST_NUM - 2 + level; i++) {
     do {
       x = Math.floor(Math.random() * canvas.width);
       y = Math.floor(Math.random() * canvas.height);
@@ -44,7 +48,11 @@ const destroyAsteroid = index => {
     asteroids.push(newAsteroid(x, y, ASTEROIDS.AST_SIZE / 8));
     asteroids.push(newAsteroid(x, y, ASTEROIDS.AST_SIZE / 8));
   }
-  asteroids.splice(index, 1);
+  asteroids.splice(index, 1)
+  if(asteroids.length === 0) {
+    level++
+    newLevel();
+  }
 };
 
 const shootBullet = () => {
@@ -64,14 +72,15 @@ const shootBullet = () => {
 };
 
 const newAsteroid = (x, y, radius) => {
+  let lvlMultiplier = 1 + .15 * level
   let asteroid = {
     x: x,
     asteroidXVelocity:
-      ((Math.random() * ASTEROIDS.AST_SPEED) / FPS) *
+      ((Math.random() * ASTEROIDS.AST_SPEED * lvlMultiplier) / FPS) *
       (Math.random() < 0.6 ? 1 : -1),
     y: y,
     asteroidYVelocity:
-      ((Math.random() * ASTEROIDS.AST_SPEED) / FPS) *
+      ((Math.random() * ASTEROIDS.AST_SPEED * lvlMultiplier) / FPS) *
       (Math.random() < 0.6 ? 1 : -1),
     radius: radius,
     direction: Math.random() * Math.PI * 2,
@@ -97,7 +106,19 @@ const destroyShip = () => {
   // ship = newShip()
 };
 
-generateAsteroidBelt();
+const newLevel = () => {
+  generateAsteroidBelt();
+
+}
+
+const newGame = () => {
+  level = 0
+  ship = newShip();
+  newLevel()
+
+}
+newGame();
+
 
 document.addEventListener("keydown", keyDown);
 document.addEventListener("keyup", keyUp);

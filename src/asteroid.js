@@ -1,7 +1,7 @@
 export const ASTEROIDS = {
   AST_NUM: 3,
-  AST_SPEED: 140,
-  AST_SIZE: 100,
+  AST_SPEED:80,
+  AST_SIZE: 90,
   AST_VERTICIES: 10,
   AST_DECIMATION: 0.4
 };

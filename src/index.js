@@ -1,58 +1,57 @@
-import './styles.css'
+import "./styles.css";
 
 // Initial
-let canvas = document.getElementById('app')
-let ctx = canvas.getContext('2d')
+let canvas = document.getElementById("app");
+let ctx = canvas.getContext("2d");
 
 // SHIP CONSTANTS
-const SHIP_SIZE = 40 /* in pixels*/
-const FPS = 30
-const SHIP_TURN_SPEED = 360
-const SHIP_THRUST = 5
-const SHIP_DRAG = 0.7
-const SHIP_EXPLODE_DURATION = 0.4
-const SHIP_I_DURATION = 1
-const SHIP_BLINK_DURATION = 0.1
+const SHIP_SIZE = 40; /* in pixels*/
+const FPS = 30;
+const SHIP_TURN_SPEED = 360;
+const SHIP_THRUST = 5;
+const SHIP_DRAG = 0.7;
+const SHIP_EXPLODE_DURATION = 0.4;
+const SHIP_I_DURATION = 1;
+const SHIP_BLINK_DURATION = 0.1;
 
 // WEAPON CONSTANTS
-const BULLET_MAX_NUMBER = 10
-const BULLET_SPEED = 700
-const BULLET_MAX_DISTANCE = 0.5
-
+const BULLET_MAX_NUMBER = 10;
+const BULLET_SPEED = 700;
+const BULLET_MAX_DISTANCE = 0.5;
 
 // ASTEROID CONSTANTS
-const AST_NUM = 0
-const AST_SPEED = 100
-const AST_SIZE = 100
-const AST_VERTICIES = 10
-const AST_DECIMATION = 0.3
+const AST_NUM = 6;
+const AST_SPEED = 100;
+const AST_SIZE = 100;
+const AST_VERTICIES = 10;
+const AST_DECIMATION = 0.3;
 
 // TEST CONSTANTS
-const BOUNDING_BOX = true
+const BOUNDING_BOX = true;
 
 // Ship
 
-let asteroids = []
+let asteroids = [];
 
 // Asteroids
 
 const checkCollision = (x1, y1, x2, y2) => {
-  return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2))
-}
+  return Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2));
+};
 
 const generateAsteroidBelt = () => {
-  asteroids = []
+  asteroids = [];
 
-  let x, y
+  let x, y;
   for (let i = 0; i < AST_NUM - 1; i++) {
     do {
-      x = Math.floor(Math.random() * canvas.width)
-      y = Math.floor(Math.random() * canvas.height)
-    } while (checkCollision(ship.Xpos, ship.Ypos, x, y) < AST_SIZE * 2)
-    asteroids.push(newAsteroid(x, y))
+      x = Math.floor(Math.random() * canvas.width);
+      y = Math.floor(Math.random() * canvas.height);
+    } while (checkCollision(ship.Xpos, ship.Ypos, x, y) < AST_SIZE * 2);
+    asteroids.push(newAsteroid(x, y));
     // (;
   }
-}
+};
 
 const newShip = () => {
   return {
@@ -71,24 +70,24 @@ const newShip = () => {
       x: 0,
       y: 0
     }
-  }
-}
+  };
+};
 
 const shootBullet = () => {
   if (ship.enableShooting && ship.bullets.length < BULLET_MAX_NUMBER) {
     ship.bullets.push({
       x: ship.Xpos + ship.radius * Math.cos(ship.direction),
       y: ship.Ypos - ship.radius * Math.sin(ship.direction),
-      xBulletVelocity: BULLET_SPEED * Math.cos(ship.direction) / FPS,
-      yBulletVelocity: -BULLET_SPEED * Math.sin(ship.direction) / FPS,
+      xBulletVelocity: (BULLET_SPEED * Math.cos(ship.direction)) / FPS,
+      yBulletVelocity: (-BULLET_SPEED * Math.sin(ship.direction)) / FPS,
       distance: 0
-    })
+    });
   }
 
-  ship.enableShooting = false
-}
+  ship.enableShooting = false;
+};
 
-let ship = newShip()
+let ship = newShip();
 
 const newAsteroid = (x, y) => {
   let asteroid = {
@@ -104,108 +103,108 @@ const newAsteroid = (x, y) => {
       Math.random() * (AST_VERTICIES + 2) + AST_VERTICIES / 2
     ),
     offset: []
-  }
+  };
 
   for (let i = 0; i < asteroid.verticies; i++) {
     asteroid.offset.push(
       Math.random() * AST_DECIMATION * 4 + 1 - AST_DECIMATION
-    )
+    );
   }
-  return asteroid
-}
+  return asteroid;
+};
 
 const destroyShip = () => {
-  ship.explodeTime = Math.ceil(SHIP_EXPLODE_DURATION * FPS)
+  ship.explodeTime = Math.ceil(SHIP_EXPLODE_DURATION * FPS);
   // ship = newShip()
-}
+};
 
-generateAsteroidBelt()
+generateAsteroidBelt();
 
-document.addEventListener('keydown', keyDown)
-document.addEventListener('keyup', keyUp)
+document.addEventListener("keydown", keyDown);
+document.addEventListener("keyup", keyUp);
 
 function keyDown(e) {
   switch (e.keyCode) {
     case 37: // left arrow (rotate ship left)
-      ship.rotation = ((SHIP_TURN_SPEED / 180) * Math.PI) / FPS
-      break
+      ship.rotation = ((SHIP_TURN_SPEED / 180) * Math.PI) / FPS;
+      break;
     case 38: // up arrow (thrust the ship forward)
-      ship.thrusting = true
+      ship.thrusting = true;
       // console.log('thrust')
-      break
+      break;
     case 39: // right arrow (rotate ship right)
-      ship.rotation = ((-SHIP_TURN_SPEED / 180) * Math.PI) / FPS
-      break
+      ship.rotation = ((-SHIP_TURN_SPEED / 180) * Math.PI) / FPS;
+      break;
     case 32: // spacebar
-      shootBullet()
-      break
+      shootBullet();
+      break;
 
     default:
-      return null
+      return null;
   }
 }
 
 function keyUp(e) {
   switch (e.keyCode) {
     case 37: // left arrow (stop rotating left)
-      ship.rotation = 0
-      break
+      ship.rotation = 0;
+      break;
     case 38: // up arrow (stop thrusting)
-      ship.thrusting = false
+      ship.thrusting = false;
       // console.log('stop')
-      break
+      break;
     case 39: // right arrow (stop rotating right)
-      ship.rotation = 0
-      break
+      ship.rotation = 0;
+      break;
     case 32: // allow new press
-      ship.enableShooting = true
-      break
+      ship.enableShooting = true;
+      break;
     default:
-      return null
+      return null;
   }
 }
 
 let update = () => {
-  let onBlink = ship.blinkNum % 2 === 0
-  let isExploding = ship.explodeTime > 0
+  let onBlink = ship.blinkNum % 2 === 0;
+  let isExploding = ship.explodeTime > 0;
   // Draw BG
 
-  ctx.fillStyle = 'black'
-  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillStyle = "black";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // Thrust
   if (ship.thrusting) {
-    ship.thrust.x += (SHIP_THRUST * Math.cos(ship.direction)) / FPS
-    ship.thrust.y -= (SHIP_THRUST * Math.sin(ship.direction)) / FPS
+    ship.thrust.x += (SHIP_THRUST * Math.cos(ship.direction)) / FPS;
+    ship.thrust.y -= (SHIP_THRUST * Math.sin(ship.direction)) / FPS;
 
     // Draw Thrust
     if (!isExploding && onBlink) {
-      ctx.fillStyle = 'black'
-      ctx.strokeStyle = 'blue'
-      ctx.lineWidth = SHIP_SIZE / 10
+      ctx.fillStyle = "black";
+      ctx.strokeStyle = "blue";
+      ctx.lineWidth = SHIP_SIZE / 10;
       // ctx.globalAlpha = 0.2
-      ctx.beginPath()
+      ctx.beginPath();
       ctx.moveTo(
         // Bottom Left
         ship.Xpos -
           ship.radius * (Math.cos(ship.direction) + Math.sin(ship.direction)),
         ship.Ypos +
           ship.radius * (Math.sin(ship.direction) - Math.cos(ship.direction))
-      )
+      );
       ctx.lineTo(
         // Bottom Right
         ship.Xpos -
           ship.radius * (Math.cos(ship.direction) - Math.sin(ship.direction)),
         ship.Ypos +
           ship.radius * (Math.sin(ship.direction) + Math.cos(ship.direction))
-      )
-      ctx.closePath()
-      ctx.fill()
-      ctx.stroke()
+      );
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
     }
   } else {
-    ship.thrust.x -= (SHIP_DRAG * ship.thrust.x) / FPS
-    ship.thrust.y -= (SHIP_DRAG * ship.thrust.y) / FPS
+    ship.thrust.x -= (SHIP_DRAG * ship.thrust.x) / FPS;
+    ship.thrust.y -= (SHIP_DRAG * ship.thrust.y) / FPS;
   }
 
   // Draw Triangular Ship
@@ -213,21 +212,21 @@ let update = () => {
 
   if (!isExploding) {
     if (onBlink) {
-      ctx.strokeStyle = 'white'
-      ctx.lineWidth = SHIP_SIZE / 20
-      ctx.beginPath()
+      ctx.strokeStyle = "white";
+      ctx.lineWidth = SHIP_SIZE / 20;
+      ctx.beginPath();
       ctx.moveTo(
         // Nose of the Ship
         ship.Xpos + ship.radius * Math.cos(ship.direction),
         ship.Ypos - ship.radius * Math.sin(ship.direction)
-      )
+      );
       ctx.lineTo(
         // Bottom Left
         ship.Xpos -
           ship.radius * (Math.cos(ship.direction) + Math.sin(ship.direction)),
         ship.Ypos +
           ship.radius * (Math.sin(ship.direction) - Math.cos(ship.direction))
-      )
+      );
 
       ctx.lineTo(
         // Bottom Right
@@ -235,48 +234,48 @@ let update = () => {
           ship.radius * (Math.cos(ship.direction) - Math.sin(ship.direction)),
         ship.Ypos +
           ship.radius * (Math.sin(ship.direction) + Math.cos(ship.direction))
-      )
-      ctx.closePath()
-      ctx.stroke()
+      );
+      ctx.closePath();
+      ctx.stroke();
     }
 
     if (ship.blinkNum > 0) {
-      ship.blinkTime--
+      ship.blinkTime--;
       if (ship.blinkTime === 0) {
-        ship.blinkTime = Math.ceil(SHIP_BLINK_DURATION * FPS)
-        ship.blinkNum--
+        ship.blinkTime = Math.ceil(SHIP_BLINK_DURATION * FPS);
+        ship.blinkNum--;
       }
     }
   } else {
-    ctx.fillStyle = 'lightgrey'
-    ctx.strokeStyle = 'slategrey'
-    ctx.beginPath()
-    ctx.arc(ship.Xpos, ship.Ypos, ship.radius * 1.3, 0, Math.PI * 2, false)
-    ctx.stroke()
-    ctx.fill()
-    ctx.strokeStyle = 'lightgrey'
-    ctx.beginPath()
-    ctx.arc(ship.Xpos, ship.Ypos, ship.radius * 1.5, 0, Math.PI * 2, false)
-    ctx.stroke()
-    ctx.fill()
-    ctx.strokeStyle = 'slategrey'
-    ctx.beginPath()
-    ctx.arc(ship.Xpos, ship.Ypos, ship.radius * 1.9, 0, Math.PI * 2, false)
-    ctx.stroke()
+    ctx.fillStyle = "lightgrey";
+    ctx.strokeStyle = "slategrey";
+    ctx.beginPath();
+    ctx.arc(ship.Xpos, ship.Ypos, ship.radius * 1.3, 0, Math.PI * 2, false);
+    ctx.stroke();
+    ctx.fill();
+    ctx.strokeStyle = "lightgrey";
+    ctx.beginPath();
+    ctx.arc(ship.Xpos, ship.Ypos, ship.radius * 1.5, 0, Math.PI * 2, false);
+    ctx.stroke();
+    ctx.fill();
+    ctx.strokeStyle = "slategrey";
+    ctx.beginPath();
+    ctx.arc(ship.Xpos, ship.Ypos, ship.radius * 1.9, 0, Math.PI * 2, false);
+    ctx.stroke();
   }
 
   if (BOUNDING_BOX) {
-    ctx.strokeStyle = 'lime'
-    ctx.beginPath()
-    ctx.arc(ship.Xpos, ship.Ypos, ship.radius, 0, Math.PI * 2, false)
-    ctx.stroke()
+    ctx.strokeStyle = "lime";
+    ctx.beginPath();
+    ctx.arc(ship.Xpos, ship.Ypos, ship.radius, 0, Math.PI * 2, false);
+    ctx.stroke();
   }
 
   // Draw Bullets
   for (let i = 0; i < ship.bullets.length; i++) {
-    ctx.fillStyle = 'red'
-    ctx.strokeStyle = 'red'
-    ctx.beginPath()
+    ctx.fillStyle = "red";
+    ctx.strokeStyle = "red";
+    ctx.beginPath();
     ctx.arc(
       ship.bullets[i].x,
       ship.bullets[i].y,
@@ -284,29 +283,52 @@ let update = () => {
       0,
       Math.PI * 2,
       false
-    )
-    ctx.fill()
-    ctx.stroke()
+    );
+    ctx.fill();
+    ctx.stroke();
+  }
+
+  // detect bullet collision with asteroids.
+  // b = bullet, a = asteroid
+
+  let bx, by, ax, ay, ar;
+  for (let i = asteroids.length - 1; i >= 0; i--) {
+    ax = asteroids[i].x;
+    ay = asteroids[i].y;
+    ar = asteroids[i].radius;
+
+    for (let j = ship.bullets.length - 1; j >= 0; j--) {
+      bx = ship.bullets[j].x;
+      by = ship.bullets[j].y;
+
+      if (checkCollision(ax, ay, bx, by) < ar) {
+        // if true, remove bullet
+        ship.bullets.splice(j, 1);
+
+        // for now remove asteroid
+        asteroids.splice(i, 1);
+      }
+    }
   }
 
   // draw Asteroids
 
-  let x, y, radius, direction, verticies, offset
+  let x, y, radius, direction, verticies, offset;
   for (let i = 0; i < asteroids.length; i++) {
-    ctx.strokeStyle = 'linen'
-    ctx.lineWidth = SHIP_SIZE / 30
-    x = asteroids[i].x
-    y = asteroids[i].y
-    radius = asteroids[i].radius
-    direction = asteroids[i].direction
-    verticies = asteroids[i].verticies
-    offset = asteroids[i].offset
+    ctx.strokeStyle = "linen";
+    ctx.lineWidth = SHIP_SIZE / 30;
+    x = asteroids[i].x;
+    y = asteroids[i].y;
+    radius = asteroids[i].radius;
+    direction = asteroids[i].direction;
+    verticies = asteroids[i].verticies;
+    offset = asteroids[i].offset;
 
-    ctx.beginPath()
+    ctx.beginPath();
     ctx.moveTo(
       x + radius * offset[0] * Math.cos(direction),
       y + radius * offset[0] * Math.sin(direction)
-    )
+    );
 
     // graph polygon
     for (let j = 2; j < verticies; j++) {
@@ -319,16 +341,16 @@ let update = () => {
           radius *
             offset[j] *
             Math.sin(direction + (j * Math.PI * 2) / verticies)
-      )
+      );
     }
-    ctx.closePath()
-    ctx.stroke()
+    ctx.closePath();
+    ctx.stroke();
 
     if (BOUNDING_BOX) {
-      ctx.strokeStyle = 'red'
-      ctx.beginPath()
-      ctx.arc(x, y, radius, 0, Math.PI * 2, false)
-      ctx.stroke()
+      ctx.strokeStyle = "red";
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2, false);
+      ctx.stroke();
     }
 
     // Move Asteroid
@@ -341,20 +363,20 @@ let update = () => {
           checkCollision(ship.Xpos, ship.Ypos, asteroids[i].x, asteroids[i].y) <
           ship.radius + asteroids[i].radius
         ) {
-          destroyShip()
+          destroyShip();
         }
       }
       // Move Ship
-      ship.Xpos += ship.thrust.x
-      ship.Ypos += ship.thrust.y
+      ship.Xpos += ship.thrust.x;
+      ship.Ypos += ship.thrust.y;
 
-      ship.direction += ship.rotation
+      ship.direction += ship.rotation;
     }
   } else {
-    ship.explodeTime--
+    ship.explodeTime--;
 
     if (ship.explodeTime === 0) {
-      ship = newShip()
+      ship = newShip();
     }
   }
   // }
@@ -363,72 +385,73 @@ let update = () => {
 
   // Screen Wrap FOR THE SHIP
   if (ship.Xpos <= 0) {
-    ship.Xpos = canvas.width - ship.radius
+    ship.Xpos = canvas.width - ship.radius;
   } else if (ship.Xpos > canvas.width) {
     // console.log("BOUNDARY")
-    ship.Xpos = 0 + ship.radius
+    ship.Xpos = 0 + ship.radius;
   }
 
   if (ship.Ypos <= 0) {
-    ship.Ypos = canvas.height - ship.radius
+    ship.Ypos = canvas.height - ship.radius;
   } else if (ship.Ypos > canvas.height) {
-    ship.Ypos = 0 + ship.radius
+    ship.Ypos = 0 + ship.radius;
   }
 
   // ASTEROID LOGIC
   for (let i = 0; i < asteroids.length; i++) {
-    asteroids[i].x += asteroids[i].asteroidXVelocity
-    asteroids[i].y += asteroids[i].asteroidYVelocity
+    asteroids[i].x += asteroids[i].asteroidXVelocity;
+    asteroids[i].y += asteroids[i].asteroidYVelocity;
 
     if (asteroids[i].y < 0 - asteroids[i].radius) {
-      asteroids[i].y = canvas.height + asteroids[i].radius
+      asteroids[i].y = canvas.height + asteroids[i].radius;
     } else if (asteroids[i].y > canvas.height + asteroids[i].radius) {
-      asteroids[i].y = 0 - asteroids[i].radius
+      asteroids[i].y = 0 - asteroids[i].radius;
     }
 
     if (asteroids[i].x < 0 - asteroids[i].radius) {
-      asteroids[i].x = canvas.width + asteroids[i].radius
+      asteroids[i].x = canvas.width + asteroids[i].radius;
     } else if (asteroids[i].x > canvas.width + asteroids[i].radius) {
       // console.log("BOUNDARY")
-      asteroids[i].x = 0 - asteroids[i].radius
+      asteroids[i].x = 0 - asteroids[i].radius;
     }
   }
 
   // BULLET LOGIC
-  for(let i = ship.bullets.length - 1; i >= 0; i--){
+  for (let i = ship.bullets.length - 1; i >= 0; i--) {
+    if (ship.bullets[i].distance > BULLET_MAX_DISTANCE * canvas.width) {
+      ship.bullets.splice(i, 1);
+      continue;
+      // skip to next iteration, otherwise crash
+    }
 
-if(ship.bullets[i].distance > BULLET_MAX_DISTANCE * canvas.width) {
-
-  ship.bullets.splice(i,1)
-  continue; 
-  // skip to next iteration, otherwise crash
-}
-
-    ship.bullets[i].x += ship.bullets[i].xBulletVelocity
-    ship.bullets[i].y += ship.bullets[i].yBulletVelocity
+    ship.bullets[i].x += ship.bullets[i].xBulletVelocity;
+    ship.bullets[i].y += ship.bullets[i].yBulletVelocity;
 
     // calculate bullet distance
-    ship.bullets[i].distance += Math.sqrt(Math.pow(ship.bullets[i].xBulletVelocity, 2) + Math.pow(ship.bullets[i].yBulletVelocity,2))
+    ship.bullets[i].distance += Math.sqrt(
+      Math.pow(ship.bullets[i].xBulletVelocity, 2) +
+        Math.pow(ship.bullets[i].yBulletVelocity, 2)
+    );
 
     //  screen wrap X
-    if(ship.bullets[i].x < 0) {
-      ship.bullets[i].x = canvas.width
+    if (ship.bullets[i].x < 0) {
+      ship.bullets[i].x = canvas.width;
     } else if (ship.bullets[i].x > canvas.width) {
-      ship.bullets[i].x = 0
+      ship.bullets[i].x = 0;
     }
     //  screen wrap Y
-    if(ship.bullets[i].y < 0) {
-      ship.bullets[i].y = canvas.height
+    if (ship.bullets[i].y < 0) {
+      ship.bullets[i].y = canvas.height;
     } else if (ship.bullets[i].y > canvas.height) {
-      ship.bullets[i].y = 0
+      ship.bullets[i].y = 0;
     }
     // console.log('hello')
   }
   // console.log(isExploding)
   // END OF UPDATE FUNC
-}
+};
 const gameloop = () => {
-  setInterval(update, 1000 / FPS)
-}
+  setInterval(update, 1000 / FPS);
+};
 
-gameloop()
+gameloop();

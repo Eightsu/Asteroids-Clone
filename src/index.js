@@ -20,11 +20,11 @@ const BULLET_SPEED = 700;
 const BULLET_MAX_DISTANCE = 0.5;
 
 // ASTEROID CONSTANTS
-const AST_NUM = 6;
-const AST_SPEED = 100;
+const AST_NUM = 3;
+const AST_SPEED = 140;
 const AST_SIZE = 100;
 const AST_VERTICIES = 10;
-const AST_DECIMATION = 0.3;
+const AST_DECIMATION = 0.4;
 
 // TEST CONSTANTS
 const BOUNDING_BOX = true;
@@ -48,9 +48,26 @@ const generateAsteroidBelt = () => {
       x = Math.floor(Math.random() * canvas.width);
       y = Math.floor(Math.random() * canvas.height);
     } while (checkCollision(ship.Xpos, ship.Ypos, x, y) < AST_SIZE * 2);
-    asteroids.push(newAsteroid(x, y));
+    asteroids.push(newAsteroid(x, y, Math.ceil(AST_SIZE / 2)));
     // (;
   }
+};
+
+const destroyAsteroid = index => {
+  //  three stages, destroy asteroid on last stage
+  let x = asteroids[index].x;
+  let y = asteroids[index].y;
+  let radius = asteroids[index].radius;
+
+  if (radius === Math.ceil(AST_SIZE / 2)) {
+    //  make two new asteroids from original asteroid
+    asteroids.push(newAsteroid(x, y, AST_SIZE / 4));
+    asteroids.push(newAsteroid(x, y, AST_SIZE / 4));
+  } else if (radius === Math.ceil(AST_SIZE / 4)) {
+    asteroids.push(newAsteroid(x, y, AST_SIZE / 8));
+    asteroids.push(newAsteroid(x, y, AST_SIZE / 8));
+  }
+  asteroids.splice(index, 1);
 };
 
 const newShip = () => {
@@ -89,7 +106,7 @@ const shootBullet = () => {
 
 let ship = newShip();
 
-const newAsteroid = (x, y) => {
+const newAsteroid = (x, y, radius) => {
   let asteroid = {
     x: x,
     asteroidXVelocity:
@@ -97,7 +114,7 @@ const newAsteroid = (x, y) => {
     y: y,
     asteroidYVelocity:
       ((Math.random() * AST_SPEED) / FPS) * (Math.random() < 0.6 ? 1 : -1),
-    radius: AST_SIZE / 2,
+    radius: radius,
     direction: Math.random() * Math.PI * 2,
     verticies: Math.floor(
       Math.random() * (AST_VERTICIES + 2) + AST_VERTICIES / 2
@@ -306,7 +323,9 @@ let update = () => {
         ship.bullets.splice(j, 1);
 
         // for now remove asteroid
-        asteroids.splice(i, 1);
+
+        destroyAsteroid(i);
+        break;
       }
     }
   }
@@ -364,6 +383,8 @@ let update = () => {
           ship.radius + asteroids[i].radius
         ) {
           destroyShip();
+          destroyAsteroid(i);
+          break;
         }
       }
       // Move Ship
@@ -454,4 +475,4 @@ const gameloop = () => {
   setInterval(update, 1000 / FPS);
 };
 
-gameloop();
+// gameloop();

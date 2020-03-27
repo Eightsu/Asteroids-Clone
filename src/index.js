@@ -51,7 +51,7 @@ const destroyAsteroid = index => {
     asteroids.push(newAsteroid(x, y, ASTEROIDS.AST_SIZE / 8));
   }
   asteroids.splice(index, 1);
-  if (asteroids.length === 0) {
+  if (!ship.finished && asteroids.length === 0) {
     level++;
     newLevel();
   }
@@ -138,6 +138,16 @@ const newLevel = () => {
   generateAsteroidBelt();
 };
 
+const gameOver = () => {
+  ship.finished = true;
+
+  text = "GAME OVER";
+  textAlpha = 1.0;
+  setTimeout(function() {
+    newGame();
+  }, 5000);
+  // newGame();
+};
 const newGame = () => {
   lives = PLAYER_LIVES;
   level = 0;
@@ -145,9 +155,6 @@ const newGame = () => {
   newLevel();
 };
 
-const gameOver = () => {
-  console.log("game over man, game over!");
-};
 newGame();
 
 document.addEventListener("keydown", keyDown);
@@ -155,6 +162,9 @@ document.addEventListener("keyup", keyUp);
 
 // CONTROLS
 function keyDown(e) {
+  if (ship.finished) {
+    return null;
+  }
   switch (e.keyCode) {
     case 37: // left arrow (rotate ship left)
       ship.rotation = ((SHIP.SHIP_TURN_SPEED / 180) * Math.PI) / FPS;
@@ -176,6 +186,9 @@ function keyDown(e) {
 }
 
 function keyUp(e) {
+  if (ship.finished) {
+    return null;
+  }
   switch (e.keyCode) {
     case 37: // left arrow (stop rotating left)
       ship.rotation = 0;
@@ -196,6 +209,7 @@ function keyUp(e) {
 }
 
 let update = () => {
+  // console.log(textAlpha);
   let onBlink = ship.blinkNum % 2 === 0;
   let isExploding = ship.explodeTime > 0;
   // Draw BG
@@ -204,7 +218,7 @@ let update = () => {
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // Thrust
-  if (ship.thrusting) {
+  if (ship.thrusting && !ship.finished) {
     ship.thrust.x += (SHIP.SHIP_THRUST * Math.cos(ship.direction)) / FPS;
     ship.thrust.y -= (SHIP.SHIP_THRUST * Math.sin(ship.direction)) / FPS;
 
@@ -242,33 +256,8 @@ let update = () => {
   // ctx.fillStyle= 'green'
 
   if (!isExploding) {
-    if (onBlink) {
+    if (onBlink && !ship.finished) {
       drawShip(ship.Xpos, ship.Ypos, ship.direction, "white");
-      // ctx.strokeStyle = "white";
-      // ctx.lineWidth = SHIP.SHIP_SIZE / 20;
-      // ctx.beginPath();
-      // ctx.moveTo(
-      //   // Nose of the Ship
-      //   ship.Xpos + ship.radius * Math.cos(ship.direction),
-      //   ship.Ypos - ship.radius * Math.sin(ship.direction)
-      // );
-      // ctx.lineTo(
-      //   // Bottom Left
-      //   ship.Xpos -
-      //     ship.radius * (Math.cos(ship.direction) + Math.sin(ship.direction)),
-      //   ship.Ypos +
-      //     ship.radius * (Math.sin(ship.direction) - Math.cos(ship.direction))
-      // );
-
-      // ctx.lineTo(
-      //   // Bottom Right
-      //   ship.Xpos -
-      //     ship.radius * (Math.cos(ship.direction) - Math.sin(ship.direction)),
-      //   ship.Ypos +
-      //     ship.radius * (Math.sin(ship.direction) + Math.cos(ship.direction))
-      // );
-      // ctx.closePath();
-      // ctx.stroke();
     }
 
     if (ship.blinkNum > 0) {
@@ -398,6 +387,8 @@ let update = () => {
     textAlpha -= textAlpha / UI.TEXT_FADE_DURATION / FPS;
   }
 
+  // console.log(textAlpha);
+
   //  SHOW PLAYER LIFE COUNT
 
   for (let i = 0; i < lives; i++) {
@@ -413,7 +404,7 @@ let update = () => {
   }
 
   if (!isExploding) {
-    if (ship.blinkNum === 0) {
+    if (ship.blinkNum === 0 && !ship.finished) {
       for (let i = 0; i < asteroids.length; i++) {
         if (
           checkCollision(ship.Xpos, ship.Ypos, asteroids[i].x, asteroids[i].y) <

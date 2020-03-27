@@ -16,6 +16,7 @@ let level;
 let text; // info for player
 let textAlpha; // fade out
 let lives;
+let score;
 
 // Asteroids
 
@@ -46,10 +47,15 @@ const destroyAsteroid = index => {
     //  make two new asteroids from original asteroid
     asteroids.push(newAsteroid(x, y, ASTEROIDS.AST_SIZE / 4));
     asteroids.push(newAsteroid(x, y, ASTEROIDS.AST_SIZE / 4));
+    score += ASTEROIDS.AST_POINTS.LARGE;
   } else if (radius === Math.ceil(ASTEROIDS.AST_SIZE / 4)) {
     asteroids.push(newAsteroid(x, y, ASTEROIDS.AST_SIZE / 8));
     asteroids.push(newAsteroid(x, y, ASTEROIDS.AST_SIZE / 8));
+    score += ASTEROIDS.AST_POINTS.MEDIUM;
+  } else {
+    score += ASTEROIDS.AST_POINTS.SMALL;
   }
+
   asteroids.splice(index, 1);
   if (!ship.finished && asteroids.length === 0) {
     level++;
@@ -146,11 +152,11 @@ const gameOver = () => {
   setTimeout(function() {
     newGame();
   }, 5000);
-  // newGame();
 };
 const newGame = () => {
-  lives = PLAYER_LIVES;
+  score = 0;
   level = 0;
+  lives = PLAYER_LIVES;
   ship = newShip();
   newLevel();
 };
@@ -162,7 +168,7 @@ document.addEventListener("keyup", keyUp);
 
 // CONTROLS
 function keyDown(e) {
-  if (ship.finished) {
+  if (ship.finished || ship.explodeTime > 0) {
     return null;
   }
   switch (e.keyCode) {
@@ -386,6 +392,12 @@ let update = () => {
     ctx.fillText(text, canvas.width / 2, canvas.height / 1.2);
     textAlpha -= textAlpha / UI.TEXT_FADE_DURATION / FPS;
   }
+
+  ctx.textAlign = "right";
+  // ctx.textBasline = "middle";
+  ctx.fillStyle = "white";
+  ctx.font = ` ${UI.FONT_SIZE - 25}px verdana`;
+  ctx.fillText(score, canvas.width - SHIP.SHIP_SIZE / 2, SHIP.SHIP_SIZE * 1.4);
 
   // console.log(textAlpha);
 

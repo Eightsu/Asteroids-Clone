@@ -5,8 +5,8 @@ export const ASTEROIDS = {
   AST_VERTICIES: 10,
   AST_DECIMATION: 0.4,
   AST_POINTS: {
-    LARGE: 20,
-    MEDIUM: 15,
-    SMAL: 10
+    LARGE: 25,
+    MEDIUM: 50,
+    SMALL: 100
   }
 };

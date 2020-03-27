@@ -103,8 +103,8 @@ const newAsteroid = (x, y, radius) => {
   return asteroid;
 };
 
-const drawShip = (XPos, YPos, direction) => {
-  ctx.strokeStyle = "rgba(255,255,255,0.2)";
+const drawShip = (XPos, YPos, direction, color = "rgba(255,255,255,0.2)") => {
+  ctx.strokeStyle = color;
   ctx.lineWidth = SHIP.SHIP_SIZE / 20;
   ctx.beginPath();
   ctx.moveTo(
@@ -143,6 +143,10 @@ const newGame = () => {
   level = 0;
   ship = newShip();
   newLevel();
+};
+
+const gameOver = () => {
+  console.log("game over man, game over!");
 };
 newGame();
 
@@ -239,31 +243,32 @@ let update = () => {
 
   if (!isExploding) {
     if (onBlink) {
-      ctx.strokeStyle = "white";
-      ctx.lineWidth = SHIP.SHIP_SIZE / 20;
-      ctx.beginPath();
-      ctx.moveTo(
-        // Nose of the Ship
-        ship.Xpos + ship.radius * Math.cos(ship.direction),
-        ship.Ypos - ship.radius * Math.sin(ship.direction)
-      );
-      ctx.lineTo(
-        // Bottom Left
-        ship.Xpos -
-          ship.radius * (Math.cos(ship.direction) + Math.sin(ship.direction)),
-        ship.Ypos +
-          ship.radius * (Math.sin(ship.direction) - Math.cos(ship.direction))
-      );
+      drawShip(ship.Xpos, ship.Ypos, ship.direction, "white");
+      // ctx.strokeStyle = "white";
+      // ctx.lineWidth = SHIP.SHIP_SIZE / 20;
+      // ctx.beginPath();
+      // ctx.moveTo(
+      //   // Nose of the Ship
+      //   ship.Xpos + ship.radius * Math.cos(ship.direction),
+      //   ship.Ypos - ship.radius * Math.sin(ship.direction)
+      // );
+      // ctx.lineTo(
+      //   // Bottom Left
+      //   ship.Xpos -
+      //     ship.radius * (Math.cos(ship.direction) + Math.sin(ship.direction)),
+      //   ship.Ypos +
+      //     ship.radius * (Math.sin(ship.direction) - Math.cos(ship.direction))
+      // );
 
-      ctx.lineTo(
-        // Bottom Right
-        ship.Xpos -
-          ship.radius * (Math.cos(ship.direction) - Math.sin(ship.direction)),
-        ship.Ypos +
-          ship.radius * (Math.sin(ship.direction) + Math.cos(ship.direction))
-      );
-      ctx.closePath();
-      ctx.stroke();
+      // ctx.lineTo(
+      //   // Bottom Right
+      //   ship.Xpos -
+      //     ship.radius * (Math.cos(ship.direction) - Math.sin(ship.direction)),
+      //   ship.Ypos +
+      //     ship.radius * (Math.sin(ship.direction) + Math.cos(ship.direction))
+      // );
+      // ctx.closePath();
+      // ctx.stroke();
     }
 
     if (ship.blinkNum > 0) {
@@ -394,11 +399,16 @@ let update = () => {
   }
 
   //  SHOW PLAYER LIFE COUNT
+
   for (let i = 0; i < lives; i++) {
+    let lifeIndicator;
+    lifeIndicator =
+      isExploding && i === lives - 1 ? "red" : "rgba(255,255,255,0.3)";
     drawShip(
       SHIP.SHIP_SIZE + i * SHIP.SHIP_SIZE * 1.1,
       SHIP.SHIP_SIZE,
-      0.5 * Math.PI
+      0.5 * Math.PI,
+      lifeIndicator
     );
   }
 
@@ -424,7 +434,12 @@ let update = () => {
     ship.explodeTime--;
 
     if (ship.explodeTime === 0) {
-      ship = newShip();
+      lives--;
+      if (lives === 0) {
+        gameOver();
+      } else {
+        ship = newShip();
+      }
     }
   }
   // }

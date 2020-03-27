@@ -1,7 +1,7 @@
 import "./styles.css";
 import { SHIP, newShip, BULLETS } from "./ship";
 import { ASTEROIDS } from "./asteroid";
-import { ctx, canvas, UI, info, infoContext } from "./global";
+import { ctx, canvas, UI, info, infoContext, HIGH_SCORE_KEY } from "./global";
 import { checkCollision } from "./utils";
 
 const FPS = 30;
@@ -63,6 +63,7 @@ const destroyAsteroid = index => {
 
   if (score > highScore) {
     highScore = score;
+    localStorage.setItem(HIGH_SCORE_KEY, highScore);
   }
 
   asteroids.splice(index, 1);
@@ -151,6 +152,10 @@ const newLevel = () => {
   text = `LEVEL ${level + 1}`;
   textAlpha = 1.0;
   generateAsteroidBelt();
+
+  if (lives < 3 && score / 5000 === 2) {
+    lives++;
+  }
 };
 
 const gameOver = () => {
@@ -163,11 +168,17 @@ const gameOver = () => {
   }, 5000);
 };
 const newGame = () => {
-  highScore = 100;
   score = 0;
   level = 0;
   lives = PLAYER_LIVES;
   ship = newShip();
+
+  let highScoreKey = localStorage.getItem(HIGH_SCORE_KEY);
+  if (highScoreKey === null) {
+    highScore = 0;
+  } else {
+    highScore = parseInt(highScoreKey, 10);
+  }
   newLevel();
 };
 
@@ -413,8 +424,6 @@ let update = () => {
   ctx.font = ` ${UI.FONT_SIZE * 0.75}px verdana`;
   ctx.fillText(score, canvas.width - SHIP.SHIP_SIZE / 2, SHIP.SHIP_SIZE * 1.4);
 
-  if (highScore > score) {
-  }
   ctx.textAlign = "center";
   // ctx.textBasline = "middle";
   ctx.fillStyle = "white";
